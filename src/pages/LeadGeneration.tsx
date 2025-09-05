@@ -44,7 +44,7 @@ export default function LeadGeneration() {
   const user = useUser();
   const { addLead } = useDataActions();
   const { addNotification } = useNotificationActions();
-  const [activeTab, setActiveTab] = useState<'generate' | 'manage'>('generate');
+  const [activeTab, setActiveTab] = useState<'generate' | 'manage'>('manage');
   const [searchQuery, setSearchQuery] = useState('');
   const [generating, setGenerating] = useState(false);
   const [searchParams, setSearchParams] = useState<LeadSearchParams>({
@@ -54,6 +54,10 @@ export default function LeadGeneration() {
     budgetRange: '',
     requirements: ''
   });
+  
+  // Self-hosted instance metrics
+  const [lastSearchDate, setLastSearchDate] = useState<Date | null>(null);
+  const [searchesPerformed, setSearchesPerformed] = useState(0);
 
   // Use leads from state, fallback to demo data if empty
   const leads: Lead[] = leadsFromState.length > 0 ? leadsFromState.map(lead => ({
@@ -111,14 +115,25 @@ export default function LeadGeneration() {
     setGenerating(true);
     
     try {
+      // Track self-hosted instance metrics
+      setLastSearchDate(new Date());
+      setSearchesPerformed(prev => prev + 1);
+      
       addNotification({
         type: 'info',
         title: 'Searching for Leads',
-        message: 'Cognis Digital AI is searching the web for qualified leads matching your criteria...'
+        message: 'Cognis Digital self-hosted AI is searching the web for qualified leads matching your criteria...'
       });
 
       // Use Google search to find real leads
       const generatedLeads = await searchService.searchForLeads(searchParams);
+      
+      // Notify about self-hosted search completion
+      addNotification({
+        type: 'success',
+        title: 'Self-Hosted Search Complete',
+        message: `Found ${generatedLeads.length} leads using local search engine.`
+      });
       
       // Convert to our lead format and add to state
       for (const generatedLead of generatedLeads) {
@@ -247,6 +262,110 @@ export default function LeadGeneration() {
         </button>
       </div>
 
+      {/* Search Performance Metrics Section - Architecturally Designed */}
+      <div className="mb-8 bg-indigo-900 rounded-3xl p-6 shadow-lg border border-indigo-800">
+        <h2 className="text-2xl font-bold text-white mb-6">Search Performance</h2>
+        
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {/* Qualification Rate */}
+          <div className="space-y-2">
+            <div className="flex justify-between items-baseline">
+              <h3 className="text-xl text-white/80 font-medium">Qualification Rate</h3>
+              <span className="text-2xl font-bold text-green-400">{qualificationRate}%</span>
+            </div>
+            <div className="h-2 w-full bg-white/10 rounded-full overflow-hidden">
+              <div 
+                className="h-full bg-gradient-to-r from-green-500 to-green-400 rounded-full" 
+                style={{ width: `${qualificationRate}%` }}
+              ></div>
+            </div>
+          </div>
+          
+          {/* Average Lead Score */}
+          <div className="space-y-2">
+            <div className="flex justify-between items-baseline">
+              <h3 className="text-xl text-white/80 font-medium">Avg. Lead Score</h3>
+              <span className="text-2xl font-bold text-blue-400">{averageScore}</span>
+            </div>
+            <div className="h-2 w-full bg-white/10 rounded-full overflow-hidden">
+              <div 
+                className="h-full bg-gradient-to-r from-blue-500 to-blue-400 rounded-full" 
+                style={{ width: `${averageScore}%` }}
+              ></div>
+            </div>
+          </div>
+          
+          {/* Total Pipeline Value */}
+          <div className="space-y-2">
+            <div className="flex justify-between items-baseline">
+              <h3 className="text-xl text-white/80 font-medium">Total Pipeline Value</h3>
+              <span className="text-2xl font-bold text-purple-400">${(totalValue / 1000).toFixed(0)}K</span>
+            </div>
+            <div className="h-2 w-full bg-white/10 rounded-full overflow-hidden">
+              <div 
+                className="h-full bg-gradient-to-r from-purple-500 to-purple-400 rounded-full" 
+                style={{ width: `${Math.min(totalValue / 100000 * 100, 100)}%` }}
+              ></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Search Insights Section - Architecturally Designed */}
+      <div className="mb-8 bg-indigo-900/80 rounded-3xl p-6 shadow-lg border border-indigo-800">
+        <div className="flex items-center gap-3 mb-6">
+          <Globe className="w-6 h-6 text-white" />
+          <h2 className="text-2xl font-bold text-white">Search Insights</h2>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* Web Search Coverage */}
+          <div className="bg-indigo-800/40 p-6 rounded-2xl border border-indigo-700/40">
+            <h3 className="text-xl font-bold text-blue-400 mb-3">Web Search Coverage</h3>
+            <p className="text-white/80">
+              Cognis Digital searches across millions of business websites to find qualified prospects matching your criteria.
+            </p>
+          </div>
+          
+          {/* Real-time Data */}
+          <div className="bg-green-900/20 p-6 rounded-2xl border border-green-800/30">
+            <h3 className="text-xl font-bold text-green-400 mb-3">Real-time Data</h3>
+            <p className="text-white/80">
+              All leads are sourced from live web data, ensuring up-to-date company information and contact details.
+            </p>
+          </div>
+          
+          {/* Smart Scoring */}
+          <div className="bg-purple-900/20 p-6 rounded-2xl border border-purple-800/30">
+            <h3 className="text-xl font-bold text-purple-400 mb-3">Smart Scoring</h3>
+            <p className="text-white/80">
+              Each lead is automatically scored based on relevance, company profile, and potential value indicators.
+            </p>
+          </div>
+        </div>
+
+        {/* Self-Hosted Instance Info */}
+        <div className="mt-4 bg-blue-900/20 p-6 rounded-2xl border border-blue-800/30">
+          <div className="flex items-center justify-between">
+            <h3 className="text-xl font-bold text-blue-400">Self-Hosted Search Engine</h3>
+            <div className="flex items-center gap-2">
+              <div className="h-2 w-2 rounded-full bg-green-400"></div>
+              <span className="text-green-400 text-sm font-medium">Active</span>
+            </div>
+          </div>
+          <div className="mt-3 grid grid-cols-2 gap-4">
+            <div>
+              <p className="text-white/60 text-sm">Last Search</p>
+              <p className="text-white">{lastSearchDate ? lastSearchDate.toLocaleString() : 'No searches yet'}</p>
+            </div>
+            <div>
+              <p className="text-white/60 text-sm">Total Searches</p>
+              <p className="text-white">{searchesPerformed}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {activeTab === 'generate' ? (
         /* Lead Generation Tab */
         <div className="grid lg:grid-cols-3 gap-8">
@@ -350,25 +469,28 @@ export default function LeadGeneration() {
                   />
                 </div>
 
-                <PaygateWrapper action="lead_generation">
-                  <button
-                    type="submit"
-                    disabled={generating}
-                    className="w-full bg-gradient-to-r from-blue-500 to-cyan-400 text-white px-8 py-4 rounded-2xl font-medium hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2"
-                  >
-                    {generating ? (
-                      <>
-                        <Loader2 className="w-5 h-5 animate-spin" />
-                        Searching the Web...
-                      </>
-                    ) : (
-                      <>
-                        <Globe className="w-5 h-5" />
-                        Search for Qualified Leads
-                      </>
-                    )}
-                  </button>
-                </PaygateWrapper>
+                <PaygateWrapper 
+                  action="lead_generation"
+                  children={
+                    <button
+                      type="submit"
+                      disabled={generating}
+                      className="w-full bg-gradient-to-r from-blue-500 to-cyan-400 text-white px-6 py-3 rounded-xl font-medium hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2"
+                    >
+                      {generating ? (
+                        <>
+                          <Loader2 className="w-5 h-5 animate-spin" />
+                          Searching...
+                        </>
+                      ) : (
+                        <>
+                          <Search className="w-5 h-5" />
+                          Generate Leads
+                        </>
+                      )}
+                    </button>
+                  }
+                />
               </form>
             </div>
           </div>

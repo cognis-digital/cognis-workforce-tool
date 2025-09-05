@@ -14,6 +14,7 @@ import Settings from './pages/Settings';
 import ImageGenerator from './pages/ImageGenerator';
 import ProtectedRoute from './components/ProtectedRoute';
 import Layout from './components/Layout';
+import ArchitecturalLayout from './components/ArchitecturalLayout';
 import { Toaster } from './components/ui/Toaster';
 import ErrorBoundary from './components/ErrorBoundary';
 
@@ -21,6 +22,7 @@ const queryClient = new QueryClient();
 
 function AppContent() {
   useInitializeApp();
+  const [useArchitecturalDesign, setUseArchitecturalDesign] = useState(true);
 
   return (
     <div className="min-h-screen bg-gradient-primary">
@@ -28,7 +30,7 @@ function AppContent() {
         <Route path="/login" element={<Login />} />
         <Route path="/" element={
           <ProtectedRoute>
-            <Layout />
+            {useArchitecturalDesign ? <ArchitecturalLayout /> : <Layout />}
           </ProtectedRoute>
         }>
           <Route index element={<Dashboard />} />
@@ -37,8 +39,8 @@ function AppContent() {
           <Route path="knowledge" element={<KnowledgeStack />} />
           <Route path="agents" element={<AgentBuilder />} />
           <Route path="leads" element={<LeadGeneration />} />
-          <Route path="settings" element={<Settings />} />
           <Route path="image-generator" element={<ImageGenerator />} />
+          <Route path="settings" element={<Settings />} />
         </Route>
       </Routes>
       <Toaster />

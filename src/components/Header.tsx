@@ -10,9 +10,10 @@ import ConnectWalletButton from './ConnectWalletButton';
 
 interface HeaderProps {
   onMenuClick: () => void;
+  serverStatus?: 'online' | 'offline' | 'degraded' | 'local';
 }
 
-export default function Header({ onMenuClick }: HeaderProps) {
+export default function Header({ onMenuClick, serverStatus = 'online' }: HeaderProps) {
   const navigate = useNavigate();
   const userProfile = useUserProfile();
   const { isConnected } = useWallet();
@@ -44,6 +45,18 @@ export default function Header({ onMenuClick }: HeaderProps) {
         <div className="flex items-center gap-3">
           {/* Usage Indicator */}
           <UsageIndicator />
+          
+          {/* Server Status */}
+          <div 
+            className={`flex items-center gap-1 px-2 py-1 rounded-lg ${
+              serverStatus === 'online' ? 'bg-green-500/20 text-green-400' :
+              serverStatus === 'offline' ? 'bg-red-500/20 text-red-400' :
+              'bg-yellow-500/20 text-yellow-400'
+            }`}
+          >
+            <div className={`w-2 h-2 rounded-full ${serverStatus === 'online' ? 'bg-green-400' : serverStatus === 'offline' ? 'bg-red-400' : 'bg-yellow-400'}`}></div>
+            <span className="text-xs font-medium">{serverStatus === 'online' ? 'Self-hosted' : serverStatus === 'offline' ? 'Offline' : 'Degraded'}</span>
+          </div>
           
           {/* Network Status */}
           <NetworkSwitcher />

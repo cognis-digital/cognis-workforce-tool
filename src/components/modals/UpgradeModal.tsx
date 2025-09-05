@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { Crown, Check, Zap, X } from 'lucide-react';
-import Modal from '../ui/Modal';
-import { useUserProfile, useUser } from '../../store/authStore';
-import { useNotificationActions } from '../../store/appStore';
-import { stripeService, StripeService } from '../../services/stripe';
+import { X, Crown, ChevronRight, Zap, Star, Gem } from 'lucide-react';
+import { useAppStore, useNotificationActions } from '../../store/appStore';
+import { useUser, useUserProfile } from '../../store/authStore';
+import { subscriptionPlans, SubscriptionTier } from '../../models/subscriptionTiers';
+import { subscriptionService } from '../../services/subscriptionService';
 import { usageService } from '../../services/usageService';
 import { useDynamicText } from '../../hooks/useDynamicText';
+import Modal from '../ui/Modal';
 
 interface UpgradeModalProps {
   isOpen: boolean;
@@ -14,9 +15,10 @@ interface UpgradeModalProps {
 }
 
 export default function UpgradeModal({ isOpen, onClose, reason }: UpgradeModalProps) {
-  const userProfile = useUserProfile();
   const user = useUser();
+  const userProfile = useUserProfile();
   const { addNotification } = useNotificationActions();
+  const [isProcessing, setIsProcessing] = useState<Record<string, boolean>>({});
   const [loading, setLoading] = useState(false);
   const { getUpgradeMessage, getUsageMessage } = useDynamicText();
 
@@ -24,63 +26,41 @@ export default function UpgradeModal({ isOpen, onClose, reason }: UpgradeModalPr
   const isAtLimit = user ? usageService.isAtLimit(user.id) : false;
   const remaining = user ? usageService.getRemainingUsage(user.id) : 0;
 
-  const plans = [
-    {
-      name: 'Pro',
-      price: 49,
-      period: 'month',
-      features: [
-        'Unlimited AI Agents',
-        'Unlimited Task Assignments',
-        'Unlimited Downloads',
-        'Priority Processing',
-        'Advanced Analytics',
-        'Custom Agent Templates',
-        'Priority Support'
-      ],
-      popular: true,
-      priceId: StripeService.PRICE_IDS.PRO_MONTHLY
-    },
-    {
-      name: 'Enterprise',
-      price: 99,
-      period: 'month',
-      features: [
-        'Everything in Pro',
-        'White-label Solution',
-        'Custom Integrations',
-        'Dedicated Account Manager',
-        'SLA Guarantee',
-        'Advanced Security',
-        'Custom AI Models',
-        'API Access'
-      ],
-      popular: false,
-      priceId: StripeService.PRICE_IDS.ENTERPRISE_MONTHLY
-    }
-  ];
-
-  const handleUpgrade = async (plan: typeof plans[0]) => {
-    setLoading(true);
+  const handleUpgrade = async (tier: SubscriptionTier) => {
+    setIsProcessing({ ...isProcessing, [tier]: true });
     
     try {
-      const { url } = await stripeService.createCheckoutSession({
-        priceId: plan.priceId,
-        successUrl: `${window.location.origin}/dashboard?upgraded=true`,
-        cancelUrl: `${window.location.origin}/dashboard?upgrade_canceled=true`
-      });
+      const response = await subscriptionService.createCheckoutSession(tier);
       
-      window.location.href = url;
-    } catch (error) {
+      if (response.success) {
+        addNotification({
+          type: 'info',
+          title: 'Subscription Process Started',
+          message: response.message
+        });
+        
+        onClose();
+        
+        if (response.redirectUrl) {
+          window.location.href = response.redirectUrl;
+        } else if (response.sessionId) {
+          await subscriptionService.redirectToCheckout(response.sessionId);
+        }
+      } else {
+        throw new Error(response.message);
+      }
+    } catch (error: any) {
       addNotification({
         type: 'error',
-        title: 'Upgrade Failed',
-        message: 'Failed to start upgrade process. Please try again.'
+        title: 'Subscription Error',
+        message: error.message || 'Failed to process subscription'
       });
     } finally {
-      setLoading(false);
+      setIsProcessing({ ...isProcessing, [tier]: false });
     }
   };
+
+  if (!isOpen) return null;
 
   return (
     <Modal
@@ -88,14 +68,15 @@ export default function UpgradeModal({ isOpen, onClose, reason }: UpgradeModalPr
       onClose={onClose}
       title="Upgrade Your Plan"
       size="lg"
-      closeOnOverlayClick={!loading}
+      closeOnOverlayClick={false}
     >
-      <div className="p-6">
-        {reason && (
-          <div className="bg-orange-500/20 border border-orange-500/30 rounded-xl p-4 mb-6">
-            <div className="flex items-center gap-2 mb-2">
-              <Crown className="w-4 h-4 text-orange-400" />
-              <h3 className="text-orange-400 font-medium">Upgrade Required</h3>
+      {(
+        <div className="p-6">
+          {reason && (
+            <div className="bg-orange-500/20 border border-orange-500/30 rounded-xl p-4 mb-6">
+              <div className="flex items-center gap-2 mb-2">
+                <Crown className="w-4 h-4 text-orange-400" />
+                <h3 className="text-orange-400 font-medium">Upgrade Required</h3>
             </div>
             <p className="text-white/70 text-sm">{reason}</p>
             {isAtLimit && (
@@ -114,59 +95,123 @@ export default function UpgradeModal({ isOpen, onClose, reason }: UpgradeModalPr
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-6">
-          {plans.map((plan) => (
-            <div
-              key={plan.name}
-              className={`border rounded-2xl p-6 relative ${
-                plan.popular
-                  ? 'border-blue-500/50 bg-blue-500/10'
-                  : 'border-white/20 bg-white/5'
-              }`}
-            >
-              {plan.popular && (
-                <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                  <span className="bg-gradient-to-r from-blue-500 to-cyan-400 text-white px-4 py-1 rounded-full text-sm font-medium">
-                    Most Popular
-                  </span>
+        <div className="space-y-6 mt-6">
+          {/* Basic Plan */}
+          <div className="bg-white/5 border border-white/10 rounded-xl p-6 hover:bg-white/10 transition-colors">
+            <div className="flex items-start justify-between">
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <Zap className="w-5 h-5 text-blue-400" />
+                  <h3 className="text-lg font-bold text-white">Basic Plan</h3>
                 </div>
-              )}
-              
-              <div className="text-center mb-6">
-                <h3 className="text-2xl font-bold text-white mb-2">{plan.name}</h3>
-                <div className="flex items-baseline justify-center gap-1">
-                  <span className="text-4xl font-bold text-white">${plan.price}</span>
-                  <span className="text-white/60">/{plan.period}</span>
+                <p className="text-white/70 mb-4">Enhanced tools for individual professionals</p>
+                <div className="space-y-2">
+                  {subscriptionPlans.find(p => p.id === 'basic')?.features.slice(0, 3).map((feature, idx) => (
+                    <div key={idx} className="flex items-center gap-2">
+                      <div className="w-5 h-5 rounded-full bg-white/10 flex items-center justify-center text-xs text-white/70">✓</div>
+                      <span className="text-white/70">{feature}</span>
+                    </div>
+                  ))}
                 </div>
               </div>
-
-              <div className="space-y-3 mb-8">
-                {plan.features.map((feature) => (
-                  <div key={feature} className="flex items-center gap-3">
-                    <Check className="w-4 h-4 text-green-400 flex-shrink-0" />
-                    <span className="text-white/80 text-sm">{feature}</span>
-                  </div>
-                ))}
+              <div className="text-right">
+                <div className="text-2xl font-bold text-white mb-1">$20</div>
+                <div className="text-white/60 text-sm mb-4">per month</div>
+                <button 
+                  onClick={() => handleUpgrade('basic')}
+                  disabled={isProcessing['basic']}
+                  className="bg-gradient-to-r from-blue-500 to-blue-600 text-white py-2 px-4 rounded-lg text-sm font-medium hover:opacity-90 transition-opacity flex items-center gap-2"
+                >
+                  {isProcessing['basic'] ? (
+                    <span className="inline-block w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin"></span>
+                  ) : (
+                    <>
+                      Choose Basic
+                      <ChevronRight className="w-4 h-4" />
+                    </>
+                  )}
+                </button>
               </div>
-
-              <button
-                onClick={() => handleUpgrade(plan)}
-                disabled={loading}
-                className={`w-full py-3 px-4 rounded-xl font-medium transition-all flex items-center justify-center gap-2 ${
-                  plan.popular
-                    ? 'bg-gradient-to-r from-blue-500 to-cyan-400 text-white hover:opacity-90'
-                    : 'bg-white/10 text-white hover:bg-white/20'
-                }`}
-              >
-                {loading ? (
-                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                ) : (
-                  <Zap className="w-4 h-4" />
-                )}
-                Upgrade to {plan.name}
-              </button>
             </div>
-          ))}
+          </div>
+          
+          {/* Pro Plan */}
+          <div className="bg-white/5 border border-white/10 rounded-xl p-6 hover:bg-white/10 transition-colors">
+            <div className="flex items-start justify-between">
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <Star className="w-5 h-5 text-purple-400" />
+                  <h3 className="text-lg font-bold text-white">Pro Plan</h3>
+                </div>
+                <p className="text-white/70 mb-4">Advanced tools for growing businesses</p>
+                <div className="space-y-2">
+                  {subscriptionPlans.find(p => p.id === 'pro')?.features.slice(0, 3).map((feature, idx) => (
+                    <div key={idx} className="flex items-center gap-2">
+                      <div className="w-5 h-5 rounded-full bg-white/10 flex items-center justify-center text-xs text-white/70">✓</div>
+                      <span className="text-white/70">{feature}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div className="text-right">
+                <div className="text-2xl font-bold text-white mb-1">$50</div>
+                <div className="text-white/60 text-sm mb-4">per month</div>
+                <button 
+                  onClick={() => handleUpgrade('pro')}
+                  disabled={isProcessing['pro']}
+                  className="bg-gradient-to-r from-purple-500 to-purple-600 text-white py-2 px-4 rounded-lg text-sm font-medium hover:opacity-90 transition-opacity flex items-center gap-2"
+                >
+                  {isProcessing['pro'] ? (
+                    <span className="inline-block w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin"></span>
+                  ) : (
+                    <>
+                      Choose Pro
+                      <ChevronRight className="w-4 h-4" />
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+          
+          {/* Enterprise Plan */}
+          <div className="bg-white/5 border border-white/10 rounded-xl p-6 hover:bg-white/10 transition-colors">
+            <div className="flex items-start justify-between">
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <Gem className="w-5 h-5 text-amber-400" />
+                  <h3 className="text-lg font-bold text-white">Enterprise Plan</h3>
+                </div>
+                <p className="text-white/70 mb-4">Ultimate solution for organizations</p>
+                <div className="space-y-2">
+                  {subscriptionPlans.find(p => p.id === 'enterprise')?.features.slice(0, 3).map((feature, idx) => (
+                    <div key={idx} className="flex items-center gap-2">
+                      <div className="w-5 h-5 rounded-full bg-white/10 flex items-center justify-center text-xs text-white/70">✓</div>
+                      <span className="text-white/70">{feature}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div className="text-right">
+                <div className="text-2xl font-bold text-white mb-1">$100</div>
+                <div className="text-white/60 text-sm mb-4">per month</div>
+                <button 
+                  onClick={() => handleUpgrade('enterprise')}
+                  disabled={isProcessing['enterprise']}
+                  className="bg-gradient-to-r from-amber-500 to-amber-600 text-white py-2 px-4 rounded-lg text-sm font-medium hover:opacity-90 transition-opacity flex items-center gap-2"
+                >
+                  {isProcessing['enterprise'] ? (
+                    <span className="inline-block w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin"></span>
+                  ) : (
+                    <>
+                      Choose Enterprise
+                      <ChevronRight className="w-4 h-4" />
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
 
         <div className="mt-8 text-center">

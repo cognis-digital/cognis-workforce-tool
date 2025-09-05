@@ -22,6 +22,7 @@ import { useUserProfile } from '../store/authStore';
 
 interface SidebarProps {
   onClose?: () => void;
+  serverStatus?: 'online' | 'offline' | 'degraded' | 'local';
 }
 
 const navItems = [
@@ -35,7 +36,7 @@ const navItems = [
   { to: '/settings', icon: Settings, label: 'Settings' }
 ];
 
-export default function Sidebar({ onClose }: SidebarProps) {
+export default function Sidebar({ onClose, serverStatus = 'online' }: SidebarProps) {
   const navigate = useNavigate();
   const userProfile = useUserProfile();
 
@@ -88,6 +89,33 @@ export default function Sidebar({ onClose }: SidebarProps) {
         </ul>
       </nav>
 
+      {/* Server Status for Self-Hosted */}
+      <div className="p-4 border-t border-white/10">
+        <div className={`${serverStatus === 'online' ? 'bg-gradient-to-r from-green-600/20 to-green-700/20 border-green-600/30' : 
+                         serverStatus === 'offline' ? 'bg-gradient-to-r from-red-600/20 to-red-700/20 border-red-600/30' : 
+                         'bg-gradient-to-r from-yellow-600/20 to-yellow-700/20 border-yellow-600/30'} 
+                         p-4 rounded-xl border`}>
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="text-text-heading font-medium text-sm">Self-Hosted Instance</h3>
+            <div className={`h-2 w-2 rounded-full ${serverStatus === 'online' ? 'bg-green-400' : 
+                            serverStatus === 'offline' ? 'bg-red-400' : 'bg-yellow-400'}`}></div>
+          </div>
+          <p className="text-text-body text-xs mb-3">
+            {serverStatus === 'online' ? 'Your local server is running properly' : 
+             serverStatus === 'offline' ? 'Server is offline. Check connection.' : 
+             'Limited connectivity detected'}
+          </p>
+          <div className="flex justify-between">
+            <button onClick={() => navigate('/settings')} className="bg-white/10 hover:bg-white/20 text-white px-3 py-2 rounded-lg text-xs font-medium transition-colors">
+              Settings
+            </button>
+            <button onClick={() => window.location.reload()} className="bg-white/10 hover:bg-white/20 text-white px-3 py-2 rounded-lg text-xs font-medium transition-colors">
+              Refresh
+            </button>
+          </div>
+        </div>
+      </div>
+      
       {/* Upgrade Banner */}
       {userProfile?.tier === 'free' && (
         <div className="p-4 border-t border-white/10">
