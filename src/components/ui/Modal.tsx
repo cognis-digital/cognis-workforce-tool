@@ -95,7 +95,6 @@ export default function Modal({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             transition={{ duration: 0.2 }}
-            className={`relative bg-slate-800 border border-white/20 rounded-2xl w-full ${sizeClasses[size]} max-h-[90vh] overflow-hidden ${className}`}
             className={`relative bg-background-primary border border-white/20 rounded-2xl w-full ${sizeClasses[size]} max-h-[90vh] overflow-hidden ${className}`}
             role="dialog"
             aria-modal="true"

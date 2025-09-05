@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ImageIcon, LoaderCircle, Download, Trash2, History, PlusCircle, Lightbulb } from 'lucide-react';
+import { ImageIcon, Loader2 as LoaderCircle, Download, Trash2, History, PlusCircle, Lightbulb } from 'lucide-react';
 import { imageGenerationService } from '../services/imageGenerationService';
 import { useDataActions } from '../store/appStore';
 import PaygateWrapper from '../components/PaygateWrapper';
