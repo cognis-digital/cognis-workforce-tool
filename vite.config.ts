@@ -18,6 +18,7 @@ export default defineConfig(({ mode }) => {
       port: 5173,
       host: true,
     },
+    base: '/cognis-workforce-tool/',
     build: {
       outDir: 'dist',
       sourcemap: true,

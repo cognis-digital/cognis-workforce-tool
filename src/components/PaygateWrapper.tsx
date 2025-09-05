@@ -6,8 +6,8 @@ import { usageService } from '../services/usageService';
 import { useDynamicText } from '../hooks/useDynamicText';
 
 interface PaygateWrapperProps {
-  action: 'agent_interaction' | 'task_assignment' | 'lead_generation' | 'knowledge_upload';
-  children: React.ReactNode;
+  action: 'agent_interaction' | 'task_assignment' | 'lead_generation' | 'knowledge_upload' | 'image_generation' | 'deep_research' | 'study_learn';
+  children: React.ReactNode | ((props: any) => React.ReactNode);
   cost?: number;
   fallback?: React.ReactNode;
 }
@@ -35,7 +35,7 @@ export default function PaygateWrapper({
 
   // Check if user has paid tier (unlimited usage)
   if (userProfile.tier === 'pro' || userProfile.tier === 'enterprise') {
-    return <>{children}</>;
+    return <>{typeof children === 'function' ? children({}) : children}</>;
   }
 
   // Check if user has exceeded free usage limit
@@ -64,5 +64,5 @@ export default function PaygateWrapper({
     );
   }
 
-  return <>{children}</>;
+  return <>{typeof children === 'function' ? children({}) : children}</>;
 }

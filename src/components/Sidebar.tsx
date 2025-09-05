@@ -12,7 +12,11 @@ import {
   X,
   Zap,
   ChevronRight,
-  Crown
+  Crown,
+  Image,
+  Search,
+  BookOpen,
+  Lightbulb
 } from 'lucide-react';
 import { useUserProfile } from '../store/authStore';
 
@@ -27,6 +31,7 @@ const navItems = [
   { to: '/knowledge', icon: Database, label: 'Knowledge Stack' },
   { to: '/agents', icon: Bot, label: 'AI Agents' },
   { to: '/leads', icon: Users, label: 'Lead Generation' },
+  { to: '/image-generator', icon: Image, label: 'Create Image' },
   { to: '/settings', icon: Settings, label: 'Settings' }
 ];
 

@@ -1,9 +1,9 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { 
   Database, 
   Upload, 
   FolderPlus, 
-  Image, 
+  Image as ImageIcon, 
   Search, 
   Filter, 
   Eye, 
@@ -20,7 +20,9 @@ import {
   Clock,
   Users,
   BarChart3,
-  Plus
+  Plus,
+  Camera,
+  Image
 } from 'lucide-react';
 import { useKnowledgeBases, useDataActions, useNotificationActions } from '../store/appStore';
 import { useUser, useUserProfile } from '../store/authStore';
@@ -28,6 +30,8 @@ import KnowledgeBaseModal from '../components/modals/KnowledgeBaseModal';
 import PaygateWrapper from '../components/PaygateWrapper';
 import { openaiService } from '../services/openai';
 import { usageService } from '../services/usageService';
+import CameraCapture from '../components/CameraCapture';
+import AICapabilitiesPanel from '../components/AICapabilitiesPanel';
 
 interface FileItem {
   id: string;
@@ -58,6 +62,10 @@ export default function KnowledgeStack() {
   
   // File management state
   const [files, setFiles] = useState<FileItem[]>([]);
+  
+  // Camera and photos state
+  const [showCamera, setShowCamera] = useState(false);
+  const [showAICapabilities, setShowAICapabilities] = useState(false);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
@@ -330,6 +338,57 @@ export default function KnowledgeStack() {
       confidence: Math.floor(Math.random() * 20) + 80 // 80-100%
     };
   };
+
+  const handleCameraCapture = (imageData: string) => {
+    setShowCamera(false);
+    
+    // Create a unique ID for the image
+    const imageId = `img-${Date.now()}-${Math.random().toString(36).substring(2, 15)}`;
+    
+    // Create a new file item for the captured image
+    const newImage: FileItem = {
+      id: imageId,
+      name: `Capture_${new Date().toISOString().split('T')[0]}.jpg`,
+      type: 'image',
+      imageUrl: imageData,
+      createdAt: new Date().toISOString(),
+      parentId: currentFolder,
+    };
+    
+    // Process image with AI (simulated)
+    setProcessing(true);
+    simulateVisionAnalysis(newImage.name)
+      .then(result => {
+        newImage.summary = result.summary;
+        newImage.keywords = result.keywords;
+        setFiles(prev => [...prev, newImage]);
+        addNotification({
+          type: 'success',
+          title: 'Image Captured',
+          message: 'Image has been analyzed and added to your knowledge base.'
+        });
+      })
+      .finally(() => {
+        setProcessing(false);
+      });
+  };
+
+  // Check URL params on load
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const action = urlParams.get('action');
+    
+    if (action === 'camera') {
+      setShowCamera(true);
+    } else if (action === 'photos') {
+      // Just show the files with image type
+    } else if (action === 'upload') {
+      handleUploadFiles();
+    }
+    
+    // Clean up URL params
+    window.history.replaceState({}, '', window.location.pathname);
+  }, []);
 
   const handleFileAction = (action: string, file: FileItem) => {
     switch (action) {
@@ -697,11 +756,37 @@ export default function KnowledgeStack() {
         </div>
       )}
 
+      {/* AI Capabilities Panel */}
+      <div className="fixed bottom-24 left-0 right-0 px-4 z-40">
+        <div className="max-w-7xl mx-auto">
+          {showAICapabilities && <AICapabilitiesPanel onClose={() => setShowAICapabilities(false)} />}
+        </div>
+      </div>
+
       {/* Bottom Action Bar - Fixed Implementation */}
       {selectedKb && (
         <div className="fixed bottom-0 left-0 right-0 bg-slate-900/95 backdrop-blur-xl border-t border-white/20 p-4 z-40">
           <div className="max-w-7xl mx-auto">
-            <div className="flex items-center justify-center gap-4">
+            <div className="flex flex-wrap items-center justify-center gap-4">
+              <button
+                onClick={() => setShowAICapabilities(!showAICapabilities)}
+                className="bg-gradient-to-r from-indigo-500 to-purple-500 text-white px-6 py-3 rounded-xl font-medium hover:opacity-90 transition-opacity flex items-center gap-2"
+              >
+                <Brain className="w-4 h-4" />
+                AI Tools
+              </button>
+
+              <PaygateWrapper action="knowledge_upload">
+                <button
+                  onClick={() => setShowCamera(true)}
+                  disabled={uploading || processing}
+                  className="bg-gradient-to-r from-blue-600 to-blue-400 text-white px-6 py-3 rounded-xl font-medium hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center gap-2"
+                >
+                  <Camera className="w-4 h-4" />
+                  Camera
+                </button>
+              </PaygateWrapper>
+
               <PaygateWrapper action="knowledge_upload">
                 <button
                   onClick={handleUploadFiles}
@@ -728,7 +813,7 @@ export default function KnowledgeStack() {
                   ) : (
                     <Image className="w-4 h-4" />
                   )}
-                  Add Images
+                  Photos
                 </button>
               </PaygateWrapper>
 
@@ -775,6 +860,14 @@ export default function KnowledgeStack() {
         }}
         editingKb={editingKb}
       />
+      
+      {/* Camera Component */}
+      {showCamera && (
+        <CameraCapture
+          onCapture={handleCameraCapture}
+          onCancel={() => setShowCamera(false)}
+        />
+      )}
     </div>
   );
 }

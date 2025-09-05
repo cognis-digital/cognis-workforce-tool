@@ -4,7 +4,7 @@ import { useAppStore } from '../store/appStore';
 export interface UsageRecord {
   id: string;
   userId: string;
-  action: 'agent_interaction' | 'task_assignment' | 'lead_generation' | 'knowledge_upload';
+  action: 'agent_interaction' | 'task_assignment' | 'lead_generation' | 'knowledge_upload' | 'image_generation' | 'deep_research' | 'study_learn';
   cost: number;
   timestamp: string;
   metadata?: any;

@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Database, Bot, Users, Target, Briefcase, Settings } from 'lucide-react';
+import { LayoutDashboard, Database, Bot, Users, Target, Briefcase, Settings, Image } from 'lucide-react';
 
 const navItems = [
   { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
@@ -9,6 +9,7 @@ const navItems = [
   { to: '/knowledge', icon: Database, label: 'Knowledge' },
   { to: '/agents', icon: Bot, label: 'Agents' },
   { to: '/leads', icon: Users, label: 'Leads' },
+  { to: '/image-generator', icon: Image, label: 'Images' },
   { to: '/settings', icon: Settings, label: 'Settings' }
 ];
 
