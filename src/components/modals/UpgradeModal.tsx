@@ -69,14 +69,14 @@ export default function UpgradeModal({ isOpen, onClose, reason }: UpgradeModalPr
       title="Upgrade Your Plan"
       size="lg"
       closeOnOverlayClick={false}
+      className=""
     >
-      {(
-        <div className="p-6">
-          {reason && (
-            <div className="bg-orange-500/20 border border-orange-500/30 rounded-xl p-4 mb-6">
-              <div className="flex items-center gap-2 mb-2">
-                <Crown className="w-4 h-4 text-orange-400" />
-                <h3 className="text-orange-400 font-medium">Upgrade Required</h3>
+      <div className="p-6">
+        {reason && (
+          <div className="bg-orange-500/20 border border-orange-500/30 rounded-xl p-4 mb-6">
+            <div className="flex items-center gap-2 mb-2">
+              <Crown className="w-4 h-4 text-orange-400" />
+              <h3 className="text-orange-400 font-medium">Upgrade Required</h3>
             </div>
             <p className="text-white/70 text-sm">{reason}</p>
             {isAtLimit && (

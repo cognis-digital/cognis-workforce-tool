@@ -12,6 +12,7 @@ import JobRoles from './pages/JobRoles';
 import LeadGeneration from './pages/LeadGeneration';
 import Settings from './pages/Settings';
 import ImageGenerator from './pages/ImageGenerator';
+import Pricing from './pages/Pricing';
 import ProtectedRoute from './components/ProtectedRoute';
 import Layout from './components/Layout';
 import ArchitecturalLayout from './components/ArchitecturalLayout';
@@ -40,6 +41,7 @@ function AppContent() {
           <Route path="agents" element={<AgentBuilder />} />
           <Route path="leads" element={<LeadGeneration />} />
           <Route path="image-generator" element={<ImageGenerator />} />
+          <Route path="pricing" element={<Pricing />} />
           <Route path="settings" element={<Settings />} />
         </Route>
       </Routes>

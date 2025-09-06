@@ -18,8 +18,9 @@ A comprehensive, production-ready blockchain AI agency workforce application wit
 - **Backend**: Supabase (self-hosted), Edge Functions
 - **AI**: OpenAI GPT-4/5 (branded as Cognis Digital)
 - **Blockchain**: Ethereum, Polygon, BSC, Avalanche, Arbitrum (testnets)
-- **Payments**: Stripe integration
+- **Payments**: Stripe integration and Wallet payments
 - **Smart Contracts**: Solidity, Hardhat, OpenZeppelin
+- **Self-Hosted**: Full architectural self-hosted implementation
 
 ## 📋 Prerequisites
 
@@ -133,9 +134,10 @@ npm run dev
 
 ## 💳 Subscription Tiers
 
-- **Free**: 1 AI Agent, 100 tasks/month, basic support
-- **Pro**: 5 AI Agents, 1,000 tasks/month, priority support
-- **Enterprise**: Unlimited agents and tasks, dedicated support
+- **Free**: Limited access to essential tools, 1 Basic AI Agent, 5 Document Uploads, 10 Lead Generation Searches
+- **Basic ($20/mo)**: Enhanced tools for individual professionals, 3 Custom AI Agents, 50 Document Uploads, 100 Lead Generation Searches
+- **Pro ($50/mo)**: Advanced tools for growing businesses, 10 Advanced AI Agents, 500 Document Uploads, 500 Lead Generation Searches
+- **Enterprise ($100/mo)**: Ultimate solution for organizations, Unlimited AI Agents, Unlimited Document Uploads, Unlimited Lead Generation
 
 ## 🌐 Supported Networks
 
