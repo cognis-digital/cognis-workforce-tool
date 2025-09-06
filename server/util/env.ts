@@ -12,7 +12,7 @@ export const ENV = {
   WASM_THREADS: parseInt(process.env.WASM_THREADS || '2'),
   CTX_WINDOW: parseInt(process.env.CTX_WINDOW || '1024'),
   MODEL_CACHE_DIR: process.env.MODEL_CACHE_DIR || '.model-cache',
-  OPENAI_API_KEY: process.env.OPENAI_API_KEY || ''
+  COGNIS_API_KEY: process.env.COGNIS_API_KEY || ''
 };
 
 console.log('🔧 Environment loaded:', {

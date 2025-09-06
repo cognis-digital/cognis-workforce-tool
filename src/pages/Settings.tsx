@@ -28,7 +28,7 @@ export default function Settings() {
   const [activeTab, setActiveTab] = useState('profile');
   const [loading, setLoading] = useState(false);
   const [apiKeys, setApiKeys] = useState({
-    openai: '',
+    cognis: '',
     stripe: '',
     cognisAI: localStorage.getItem('cognis_ai_api_key') || ''
   });
@@ -93,7 +93,7 @@ export default function Settings() {
 
   const handleSaveApiKeys = () => {
     // In a real implementation, these would be saved securely
-    localStorage.setItem('openai_api_key', apiKeys.openai);
+    localStorage.setItem('cognis_api_key', apiKeys.cognis);
     localStorage.setItem('stripe_api_key', apiKeys.stripe);
     localStorage.setItem('cognis_ai_api_key', apiKeys.cognisAI);
     localStorage.setItem('cognis_ai_model', cognisConfig.model);
@@ -484,7 +484,7 @@ export default function Settings() {
                     <SettingsIcon className="w-5 h-5" />
                     Cognis Digital AI Engine
                   </h2>
-                  <p className="text-white/60 mb-6">Configure your AI model provider (powered by OpenAI)</p>
+                  <p className="text-white/60 mb-6">Configure your AI model provider (powered by Cognis)</p>
                   
                   <div className="space-y-6">
                     <div>

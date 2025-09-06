@@ -28,7 +28,7 @@ import { useKnowledgeBases, useDataActions, useNotificationActions } from '../st
 import { useUser, useUserProfile } from '../store/authStore';
 import KnowledgeBaseModal from '../components/modals/KnowledgeBaseModal';
 import PaygateWrapper from '../components/PaygateWrapper';
-import { openaiService } from '../services/openai';
+import { cognisService } from '../services/cognis';
 import { usageService } from '../services/usageService';
 import CameraCapture from '../components/CameraCapture';
 import AICapabilitiesPanel from '../components/AICapabilitiesPanel';
@@ -128,9 +128,9 @@ export default function KnowledgeStack() {
         const fileContent = await readFileContent(file);
         
         // Process with AI
-        const summary = await openaiService.generateKnowledgeSummary(fileContent);
-        const keywords = await openaiService.extractKeywords(fileContent);
-        const quality = await openaiService.analyzeContentQuality(fileContent);
+        const summary = await cognisService.generateKnowledgeSummary(fileContent);
+        const keywords = await cognisService.extractKeywords(fileContent);
+        const quality = await cognisService.analyzeContentQuality(fileContent);
 
         const newFile: FileItem = {
           id: `file-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,

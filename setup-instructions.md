@@ -11,8 +11,8 @@ npm install
 Update the `.env` file with your actual API keys:
 
 ```env
-# Required: Add your OpenAI API key
-OPENAI_API_KEY=sk-your-openai-api-key-here
+# Required: Add your Cognis API key
+COGNIS_API_KEY=sk-your-cognis-api-key-here
 
 # Required: Add your Stripe secret key
 STRIPE_SECRET_KEY=sk_live_your-stripe-secret-key-here
@@ -127,7 +127,7 @@ npm audit fix
 | `VITE_SUPABASE_URL` | Supabase project URL | ✅ |
 | `VITE_SUPABASE_ANON_KEY` | Supabase anonymous key | ✅ |
 | `SUPABASE_SERVICE_ROLE_KEY` | Supabase service role key | ✅ |
-| `OPENAI_API_KEY` | OpenAI API key for AI functions | ✅ |
+| `COGNIS_API_KEY` | Cognis API key for AI functions | ✅ |
 | `VITE_STRIPE_PUBLISHABLE_KEY` | Stripe publishable key | ✅ |
 | `STRIPE_SECRET_KEY` | Stripe secret key | ✅ |
 | `STRIPE_WEBHOOK_SECRET` | Stripe webhook secret | ✅ |

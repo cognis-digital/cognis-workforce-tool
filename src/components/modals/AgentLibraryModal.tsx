@@ -48,7 +48,7 @@ const prebuiltAgents: PrebuiltAgent[] = [
     downloads: 2847,
     tags: ['customer-service', 'support', 'communication'],
     preview: 'Hello! I\'m here to help you with any questions or concerns. How can I assist you today?',
-    modelConfig: { model: 'gpt-4', temperature: 0.7, maxTokens: 800 },
+    modelConfig: { model: 'Cognis-Zenith-4.0', temperature: 0.7, maxTokens: 800 },
     personality: 'Empathetic, patient, solution-focused',
     responseStyle: 'Warm and professional'
   },
@@ -63,7 +63,7 @@ const prebuiltAgents: PrebuiltAgent[] = [
     downloads: 1923,
     tags: ['sales', 'conversion', 'leads'],
     preview: 'I understand you\'re looking for a solution that can help your business grow. Let me show you how we can achieve that together.',
-    modelConfig: { model: 'gpt-4', temperature: 0.8, maxTokens: 1000 },
+    modelConfig: { model: 'Cognis-Zenith-4.0', temperature: 0.8, maxTokens: 1000 },
     personality: 'Confident, persuasive, goal-oriented',
     responseStyle: 'Engaging and results-focused'
   },
@@ -78,7 +78,7 @@ const prebuiltAgents: PrebuiltAgent[] = [
     downloads: 1456,
     tags: ['documentation', 'technical', 'developer'],
     preview: 'I\'ll help you create clear, comprehensive documentation that developers will actually want to read.',
-    modelConfig: { model: 'gpt-4', temperature: 0.3, maxTokens: 1200 },
+    modelConfig: { model: 'Cognis-Zenith-4.0', temperature: 0.3, maxTokens: 1200 },
     personality: 'Precise, methodical, detail-oriented',
     responseStyle: 'Clear and structured'
   },
@@ -93,7 +93,7 @@ const prebuiltAgents: PrebuiltAgent[] = [
     downloads: 3241,
     tags: ['social-media', 'content', 'marketing'],
     preview: 'Ready to create content that resonates with your audience and drives engagement across all platforms!',
-    modelConfig: { model: 'gpt-4', temperature: 0.9, maxTokens: 600 },
+    modelConfig: { model: 'Cognis-Zenith-4.0', temperature: 0.9, maxTokens: 600 },
     personality: 'Creative, trendy, engaging',
     responseStyle: 'Energetic and creative'
   },
@@ -108,7 +108,7 @@ const prebuiltAgents: PrebuiltAgent[] = [
     downloads: 1687,
     tags: ['analytics', 'data', 'insights'],
     preview: 'I\'ve analyzed your data and identified several key trends that could significantly impact your business strategy.',
-    modelConfig: { model: 'gpt-4', temperature: 0.4, maxTokens: 1000 },
+    modelConfig: { model: 'Cognis-Zenith-4.0', temperature: 0.4, maxTokens: 1000 },
     personality: 'Analytical, objective, thorough',
     responseStyle: 'Data-driven and precise'
   },
@@ -123,7 +123,7 @@ const prebuiltAgents: PrebuiltAgent[] = [
     downloads: 892,
     tags: ['recruitment', 'hr', 'hiring'],
     preview: 'I\'ll help you find the perfect candidates for your team by streamlining the entire recruitment process.',
-    modelConfig: { model: 'gpt-4', temperature: 0.6, maxTokens: 800 },
+    modelConfig: { model: 'Cognis-Zenith-4.0', temperature: 0.6, maxTokens: 800 },
     personality: 'Professional, thorough, people-focused',
     responseStyle: 'Professional and encouraging'
   }

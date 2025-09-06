@@ -64,7 +64,7 @@ export class AIService {
         .insert([{
           ...agentData,
           model_config: agentData.modelConfig || {
-            model: 'gpt-4',
+            model: 'Cognis-Zenith-4.0',
             temperature: 0.7,
             max_tokens: 1000
           }

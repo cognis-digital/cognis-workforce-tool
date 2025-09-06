@@ -98,35 +98,35 @@ Capabilities: ${agent.capabilities?.join(', ') || 'General assistance'}
 You are professional, knowledgeable, and focused on helping with business tasks. Always maintain the Cognis Digital branding in your responses.${contextualKnowledge}`
     }
 
-    // Prepare messages for OpenAI
-    const openaiMessages = [systemMessage, ...messages]
+    // Prepare messages for Cognis AI
+    const cognisMessages = [systemMessage, ...messages]
 
-    // Call OpenAI API
-    const openaiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+    // Call Cognis API
+    const cognisResponse = await fetch('https://api.cognis.com/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${Deno.env.get('OPENAI_API_KEY')}`,
+        'Authorization': `Bearer ${Deno.env.get('COGNIS_API_KEY')}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: agent.model_config?.model || 'gpt-4',
-        messages: openaiMessages,
+        model: agent.model_config?.model || 'Cognis-Zenith-4.0',
+        messages: cognisMessages,
         temperature: agent.model_config?.temperature || 0.7,
         max_tokens: agent.model_config?.max_tokens || 1000,
         stream: stream,
       }),
     })
 
-    if (!openaiResponse.ok) {
-      const error = await openaiResponse.text()
-      console.error('OpenAI API error:', error)
+    if (!cognisResponse.ok) {
+      const error = await cognisResponse.text()
+      console.error('Cognis API error:', error)
       return new Response(
         JSON.stringify({ error: 'AI service temporarily unavailable' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
-    const completion = await openaiResponse.json()
+    const completion = await cognisResponse.json()
     const assistantMessage = completion.choices[0]?.message?.content || 'I apologize, but I could not generate a response.'
 
     // Log the interaction

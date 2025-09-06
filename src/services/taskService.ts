@@ -1,5 +1,5 @@
 import { database } from './database';
-import { openaiService } from './openai';
+import { cognisService } from './cognis';
 import { useAuthStore } from '../store/authStore';
 import { useAppStore } from '../store/appStore';
 import { usageService } from './usageService';
@@ -170,19 +170,19 @@ export class TaskService {
     const userPrompt = this.buildUserPrompt(task);
 
     try {
-      const response = await openaiService.createChatCompletion({
+      const response = await cognisService.createChatCompletion({
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userPrompt }
         ],
-        model: agent.model_config?.model || 'gpt-4',
+        model: agent.model_config?.model || 'Cognis-Zenith-4.0',
         temperature: agent.model_config?.temperature || 0.7,
         max_tokens: agent.model_config?.max_tokens || 2000
       });
 
       return response.choices[0]?.message?.content || 'Failed to generate content';
     } catch (error) {
-      console.error('OpenAI API error:', error);
+      console.error('Cognis API error:', error);
       throw new Error('Failed to generate deliverable content');
     }
   }
@@ -203,7 +203,7 @@ IMPORTANT INSTRUCTIONS:
 - Include actionable insights and recommendations
 - Maintain Cognis Digital branding and professionalism
 - Ensure content is comprehensive and valuable
-- Do not mention OpenAI or any other AI providers - you are powered by Cognis Digital AI
+- You are exclusively powered by Cognis Digital AI - do not mention any other AI providers
 
 ${task.deliverableFormat === 'pdf' ? 'Structure your response with clear headings, sections, and bullet points suitable for PDF formatting.' : ''}
 ${task.deliverableFormat === 'csv' ? 'Provide data in CSV format with proper headers and structured rows.' : ''}

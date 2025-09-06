@@ -1,6 +1,6 @@
-// OpenAI API integration service for knowledge processing and AI operations
+// Cognis API integration service for knowledge processing and AI operations
 
-export interface OpenAIConfig {
+export interface CognisConfig {
   apiKey: string;
   model: string;
   temperature: number;
@@ -49,21 +49,21 @@ export interface ChatResponse {
   };
 }
 
-export class OpenAIService {
+export class CognisService {
   private apiKey: string;
-  private baseUrl = 'https://api.openai.com/v1';
+  private baseUrl = 'https://api.cognis.com/v1';
 
   constructor(apiKey?: string) {
-    this.apiKey = apiKey || import.meta.env.VITE_OPENAI_API_KEY || '';
+    this.apiKey = apiKey || import.meta.env.VITE_COGNIS_API_KEY || '';
     
     if (!this.apiKey) {
-      console.warn('OpenAI API key not found. Some features may not work.');
+      console.warn('Cognis API key not found. Some features may not work.');
     }
   }
 
   private async makeRequest<T>(endpoint: string, data: any): Promise<T> {
     if (!this.apiKey) {
-      throw new Error('OpenAI API key not configured');
+      throw new Error('Cognis API key not configured');
     }
 
     const response = await fetch(`${this.baseUrl}${endpoint}`, {
@@ -85,14 +85,14 @@ export class OpenAIService {
 
   async createEmbeddings(request: EmbeddingRequest): Promise<EmbeddingResponse> {
     return this.makeRequest<EmbeddingResponse>('/embeddings', {
-      model: request.model || 'text-embedding-ada-002',
+      model: request.model || 'Cognis-Nova-3.0',
       input: request.input,
     });
   }
 
   async createChatCompletion(request: ChatRequest): Promise<ChatResponse> {
     return this.makeRequest<ChatResponse>('/chat/completions', {
-      model: request.model || 'gpt-4',
+      model: request.model || 'Cognis-Zenith-4.0',
       messages: request.messages,
       temperature: request.temperature || 0.7,
       max_tokens: request.max_tokens || 1000,
@@ -128,7 +128,7 @@ export class OpenAIService {
             content: `Please provide a comprehensive summary of the following content:\n\n${content.slice(0, 3000)}...`
           }
         ],
-        model: 'gpt-4',
+        model: 'Cognis-Zenith-4.0',
         temperature: 0.3,
         max_tokens: 300
       });
@@ -153,7 +153,7 @@ export class OpenAIService {
             content: content.slice(0, 2000)
           }
         ],
-        model: 'gpt-3.5-turbo',
+        model: 'Cognis-Apex-3.5',
         temperature: 0.2,
         max_tokens: 200
       });
@@ -183,7 +183,7 @@ export class OpenAIService {
             content: `Analyze this content:\n\n${content.slice(0, 2000)}...`
           }
         ],
-        model: 'gpt-4',
+        model: 'Cognis-Zenith-4.0',
         temperature: 0.3,
         max_tokens: 400
       });
@@ -219,4 +219,4 @@ export class OpenAIService {
 }
 
 // Export singleton instance
-export const openaiService = new OpenAIService();
+export const cognisService = new CognisService();

@@ -16,7 +16,7 @@ A comprehensive, production-ready blockchain AI agency workforce application wit
 
 - **Frontend**: React 18, TypeScript, Tailwind CSS, Framer Motion
 - **Backend**: Supabase (self-hosted), Edge Functions
-- **AI**: OpenAI GPT-4/5 (branded as Cognis Digital)
+- **AI**: Cognis-Zenith-4.0/Cognis-Apex-3.5 (by Cognis Digital)
 - **Blockchain**: Ethereum, Polygon, BSC, Avalanche, Arbitrum (testnets)
 - **Payments**: Stripe integration and Wallet payments
 - **Smart Contracts**: Solidity, Hardhat, OpenZeppelin
@@ -49,8 +49,8 @@ VITE_SUPABASE_URL=http://localhost:54321
 VITE_SUPABASE_ANON_KEY=<your-anon-key>
 SUPABASE_SERVICE_ROLE_KEY=<your-service-role-key>
 
-# OpenAI
-OPENAI_API_KEY=<your-openai-api-key>
+# Cognis AI
+COGNIS_API_KEY=<your-cognis-api-key>
 
 # Stripe
 VITE_STRIPE_PUBLISHABLE_KEY=pk_live_51QeUu1GEVYcs2xbF94uVpiyEPcgD92TY3WAQpbjXXTLf2giAbOZCJy2yqRhH2Ul9r77xi9cslgEx4pfElU2KK5Lt00cYegad7U
@@ -120,7 +120,7 @@ npm run dev
 
 ### Edge Functions
 
-- **ai-chat**: OpenAI integration with Cognis branding
+- **ai-chat**: Cognis AI integration
 - **stripe-webhook**: Subscription lifecycle management
 - **create-checkout**: Stripe checkout session creation
 
@@ -170,7 +170,7 @@ npm run dev
 VITE_SUPABASE_URL=https://your-project.supabase.co
 VITE_SUPABASE_ANON_KEY=your-production-anon-key
 SUPABASE_SERVICE_ROLE_KEY=your-production-service-key
-OPENAI_API_KEY=your-openai-key
+COGNIS_API_KEY=your-cognis-key
 VITE_STRIPE_PUBLISHABLE_KEY=pk_live_...
 STRIPE_SECRET_KEY=sk_live_...
 STRIPE_WEBHOOK_SECRET=whsec_...
