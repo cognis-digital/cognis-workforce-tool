@@ -48,6 +48,7 @@ const navItems: NavItem[] = [
   { to: '/pricing', icon: DollarSign, label: 'Pricing Plans' },
   { to: '/subscription', icon: RefreshCw, label: 'Subscription Management' },
   { to: '/subscription-analytics', icon: BarChart3, label: 'Subscription Analytics', adminOnly: true },
+  { to: '/admin-subscription', icon: Users, label: 'Subscriber Management', adminOnly: true },
   { to: '/settings', icon: Settings, label: 'Settings' }
 ];
 
