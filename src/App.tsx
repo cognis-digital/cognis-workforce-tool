@@ -15,6 +15,7 @@ import ImageGenerator from './pages/ImageGenerator';
 import Pricing from './pages/Pricing';
 import SubscriptionAnalytics from './pages/SubscriptionAnalytics';
 import UsageDashboard from './pages/UsageDashboard';
+import SubscriptionManagement from './pages/SubscriptionManagement';
 import ProtectedRoute from './components/ProtectedRoute';
 import Layout from './components/Layout';
 import ArchitecturalLayout from './components/ArchitecturalLayout';
@@ -46,6 +47,7 @@ function AppContent() {
           <Route path="pricing" element={<Pricing />} />
           <Route path="subscription-analytics" element={<SubscriptionAnalytics />} />
           <Route path="usage" element={<UsageDashboard />} />
+          <Route path="subscription" element={<SubscriptionManagement />} />
           <Route path="settings" element={<Settings />} />
         </Route>
       </Routes>
