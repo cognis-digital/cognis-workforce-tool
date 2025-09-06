@@ -16,7 +16,9 @@ import {
   Image,
   Search,
   BookOpen,
-  Lightbulb
+  Lightbulb,
+  BarChart3,
+  DollarSign
 } from 'lucide-react';
 import { useUserProfile } from '../store/authStore';
 
@@ -25,7 +27,14 @@ interface SidebarProps {
   serverStatus?: 'online' | 'offline' | 'degraded' | 'local';
 }
 
-const navItems = [
+interface NavItem {
+  to: string;
+  icon: React.ElementType;
+  label: string;
+  adminOnly?: boolean;
+}
+
+const navItems: NavItem[] = [
   { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
   { to: '/tasks', icon: Target, label: 'Task Center' },
   { to: '/job-roles', icon: Briefcase, label: 'Job Roles' },
@@ -33,6 +42,8 @@ const navItems = [
   { to: '/agents', icon: Bot, label: 'AI Agents' },
   { to: '/leads', icon: Users, label: 'Lead Generation' },
   { to: '/image-generator', icon: Image, label: 'Create Image' },
+  { to: '/pricing', icon: DollarSign, label: 'Pricing Plans' },
+  { to: '/subscription-analytics', icon: BarChart3, label: 'Subscription Analytics', adminOnly: true },
   { to: '/settings', icon: Settings, label: 'Settings' }
 ];
 
@@ -67,7 +78,13 @@ export default function Sidebar({ onClose, serverStatus = 'online' }: SidebarPro
       {/* Navigation */}
       <nav className="flex-1 p-4">
         <ul className="space-y-2">
-          {navItems.map(({ to, icon: Icon, label }) => (
+          {navItems.map(({ to, icon: Icon, label, adminOnly }) => {
+            // Skip adminOnly items for non-admin users
+            if (adminOnly && userProfile?.role !== 'admin') {
+              return null;
+            }
+            
+            return (
             <li key={to}>
               <NavLink
                 to={to}
@@ -85,7 +102,8 @@ export default function Sidebar({ onClose, serverStatus = 'online' }: SidebarPro
                 <ChevronRight className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" />
               </NavLink>
             </li>
-          ))}
+          );
+          })}
         </ul>
       </nav>
 
