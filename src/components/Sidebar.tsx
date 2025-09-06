@@ -18,7 +18,8 @@ import {
   BookOpen,
   Lightbulb,
   BarChart3,
-  DollarSign
+  DollarSign,
+  PieChart
 } from 'lucide-react';
 import { useUserProfile } from '../store/authStore';
 
@@ -42,6 +43,7 @@ const navItems: NavItem[] = [
   { to: '/agents', icon: Bot, label: 'AI Agents' },
   { to: '/leads', icon: Users, label: 'Lead Generation' },
   { to: '/image-generator', icon: Image, label: 'Create Image' },
+  { to: '/usage', icon: PieChart, label: 'Usage Dashboard' },
   { to: '/pricing', icon: DollarSign, label: 'Pricing Plans' },
   { to: '/subscription-analytics', icon: BarChart3, label: 'Subscription Analytics', adminOnly: true },
   { to: '/settings', icon: Settings, label: 'Settings' }

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Users, 
   Target, 
@@ -19,10 +19,12 @@ import {
   Star,
   AlertCircle
 } from 'lucide-react';
-import { useLeads, useDataActions, useNotificationActions } from '../store/appStore';
-import { searchService, LeadSearchParams } from '../services/searchService';
-import { useUser } from '../store/authStore';
-import PaygateWrapper from '../components/PaygateWrapper';
+import { useLeads } from '../store/appStore';
+import { useUser, useUserProfile } from '../store/authStore';
+import { useDataActions, useNotificationActions } from '../store/appStore';
+import FeatureGate from '../components/FeatureGate';
+import { useFeaturePaygate } from '../hooks/useFeaturePaygate';
+import { searchService } from '../services/searchService';
 
 interface Lead {
   id: string;
@@ -100,6 +102,17 @@ export default function LeadGeneration() {
     }
   };
 
+  // Feature gating for lead searches
+  const { 
+    canAccess, 
+    isLoading: checkingUsage, 
+    usage: leadSearchUsage, 
+    handleIncrement: incrementLeadSearch
+  } = useFeaturePaygate({
+    feature: 'leadSearches',
+    redirectToUpgrade: true
+  });
+
   const handleGenerateLeads = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -112,9 +125,24 @@ export default function LeadGeneration() {
       return;
     }
 
+    // Check if user can perform another search based on subscription
+    if (!canAccess) {
+      addNotification({
+        type: 'error',
+        title: 'Usage Limit Reached',
+        message: `You've reached your limit of ${leadSearchUsage.limit} lead searches for this billing period.`,
+        action: 'Upgrade',
+        actionUrl: '/pricing'
+      });
+      return;
+    }
+
     setGenerating(true);
     
     try {
+      // Track lead search usage
+      await incrementLeadSearch();
+      
       // Track self-hosted instance metrics
       setLastSearchDate(new Date());
       setSearchesPerformed(prev => prev + 1);
@@ -469,28 +497,29 @@ export default function LeadGeneration() {
                   />
                 </div>
 
-                <PaygateWrapper 
-                  action="lead_generation"
-                  children={
-                    <button
-                      type="submit"
-                      disabled={generating}
-                      className="w-full bg-gradient-to-r from-blue-500 to-cyan-400 text-white px-6 py-3 rounded-xl font-medium hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2"
-                    >
-                      {generating ? (
-                        <>
-                          <Loader2 className="w-5 h-5 animate-spin" />
-                          Searching...
-                        </>
-                      ) : (
-                        <>
-                          <Search className="w-5 h-5" />
-                          Generate Leads
-                        </>
-                      )}
-                    </button>
-                  }
-                />
+                <FeatureGate 
+                  feature="leadSearches"
+                  incrementOnRender={false}
+                  redirectToUpgrade={true}
+                >
+                  <button
+                    type="submit"
+                    disabled={generating}
+                    className="w-full bg-gradient-to-r from-blue-500 to-cyan-400 text-white px-6 py-3 rounded-xl font-medium hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2"
+                  >
+                    {generating ? (
+                      <>
+                        <Loader2 className="w-5 h-5 animate-spin" />
+                        Searching...
+                      </>
+                    ) : (
+                      <>
+                        <Search className="w-5 h-5" />
+                        Generate Leads ({leadSearchUsage.current}/{leadSearchUsage.limit})
+                      </>
+                    )}
+                  </button>
+                </FeatureGate>
               </form>
             </div>
           </div>
