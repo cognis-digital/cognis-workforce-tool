@@ -10,7 +10,8 @@
     "strict": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "outDir": "./dist"
   },
   "include": ["server/**/*", "web/**/*"],
   "exclude": ["node_modules", "dist"]

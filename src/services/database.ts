@@ -286,10 +286,10 @@ export class DatabaseService {
           limit: (count: number) => this.selectMany(table, columns, column, value, count)
         }),
         order: (column: string, options?: { ascending: boolean }) => ({
-          limit: (count: number) => this.selectMany(table, columns, null, null, count)
+          limit: (count: number) => this.selectMany(table, columns, undefined, undefined, count)
         }),
         single: () => this.selectSingle(table, columns),
-        limit: (count: number) => this.selectMany(table, columns, null, null, count)
+        limit: (count: number) => this.selectMany(table, columns, undefined, undefined, count)
       }),
       insert: (data: any[]) => ({
         select: () => ({

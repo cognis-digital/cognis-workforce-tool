@@ -9,7 +9,6 @@ interface UIState {
   activeModal: string | null;
   searchQuery: string;
   viewMode: 'grid' | 'list';
-  activeModal: string | null;
 }
 
 interface Notification {
@@ -17,6 +16,8 @@ interface Notification {
   type: 'success' | 'error' | 'warning' | 'info';
   title: string;
   message: string;
+  action?: string;
+  actionUrl?: string;
   timestamp: number;
   read: boolean;
 }
