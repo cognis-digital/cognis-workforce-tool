@@ -1,0 +1,46 @@
+{
+  "data": [
+    {
+      "id": "Cognis-Zenith-4.0",
+      "name": "Cognis Zenith 4.0",
+      "description": "Latest large language model with advanced reasoning capabilities",
+      "created": 1725678000,
+      "owned_by": "cognis-digital",
+      "context_window": 16384,
+      "token_limit": 4096,
+      "pricing": {
+        "input": 0.0001,
+        "output": 0.0002
+      },
+      "capabilities": ["code", "reasoning", "math", "language"]
+    },
+    {
+      "id": "Cognis-Nova-3.0",
+      "name": "Cognis Nova 3.0",
+      "description": "Optimized embedding model for semantic search and analysis",
+      "created": 1725677000,
+      "owned_by": "cognis-digital",
+      "context_window": 8192,
+      "token_limit": 2048,
+      "pricing": {
+        "input": 0.00005,
+        "output": 0.0001
+      },
+      "capabilities": ["embeddings", "classification", "search"]
+    },
+    {
+      "id": "Cognis-Apex-3.5",
+      "name": "Cognis Apex 3.5",
+      "description": "Balanced model for general purpose tasks with efficient performance",
+      "created": 1725676000,
+      "owned_by": "cognis-digital",
+      "context_window": 12288,
+      "token_limit": 3072,
+      "pricing": {
+        "input": 0.00008,
+        "output": 0.00015
+      },
+      "capabilities": ["summarization", "generation", "translation"]
+    }
+  ]
+}

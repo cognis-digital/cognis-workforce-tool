@@ -5,6 +5,8 @@ export interface CognisConfig {
   model: string;
   temperature: number;
   maxTokens: number;
+  baseUrl?: string;
+  selfHosted?: boolean;
 }
 
 export interface EmbeddingRequest {
@@ -51,54 +53,188 @@ export interface ChatResponse {
 
 export class CognisService {
   private apiKey: string;
-  private baseUrl = 'https://api.cognis.com/v1';
+  private baseUrl: string;
+  private selfHosted: boolean;
+  private connectionStatus: 'connected' | 'disconnected' | 'connecting' = 'disconnected';
+  private reconnectAttempts: number = 0;
+  private maxReconnectAttempts: number = 5;
+  private eventListeners: Map<string, Function[]> = new Map();
 
-  constructor(apiKey?: string) {
-    // Get API key from window.ENV (GitHub Pages) or import.meta.env (dev)
+  constructor(apiKey?: string, config?: Partial<CognisConfig>) {
+    // Get API key from various sources with fallbacks
     let envApiKey: string | undefined;
+    let envBaseUrl: string | undefined;
+    let envSelfHosted: boolean | undefined;
+    
+    // Check for self-hosted mode flag in URL query params
+    const urlParams = new URLSearchParams(window.location.search);
+    const selfHostedParam = urlParams.get('selfHosted') === 'true' || urlParams.get('local') === 'true';
     
     // Check window.ENV first (production/GitHub Pages)
-    if (typeof window !== 'undefined' && window.ENV && window.ENV.VITE_COGNIS_API_KEY) {
+    if (typeof window !== 'undefined' && window.ENV) {
       envApiKey = window.ENV.VITE_COGNIS_API_KEY;
+      envBaseUrl = window.ENV.VITE_API_URL;
+      envSelfHosted = window.ENV.VITE_SELF_HOSTED === 'true';
     }
     // Fallback to import.meta.env (development)
     else if (typeof import.meta === 'object' && import.meta && 'env' in import.meta) {
       envApiKey = (import.meta as any).env.VITE_COGNIS_API_KEY;
+      envBaseUrl = (import.meta as any).env.VITE_API_URL;
+      envSelfHosted = (import.meta as any).env.VITE_SELF_HOSTED === 'true';
     }
     
-    this.apiKey = apiKey || envApiKey || '';
+    // Set API key with fallbacks
+    this.apiKey = apiKey || 
+                 config?.apiKey || 
+                 envApiKey || 
+                 localStorage.getItem('cognis_api_key') || 
+                 '';
     
-    if (!this.apiKey) {
+    // Determine if we're in self-hosted mode
+    this.selfHosted = config?.selfHosted || 
+                      selfHostedParam || 
+                      envSelfHosted || 
+                      false;
+    
+    // Set base URL with appropriate defaults
+    if (this.selfHosted) {
+      // For self-hosted mode, use relative URL or window location as base
+      const origin = window.location.origin;
+      this.baseUrl = config?.baseUrl || 
+                   envBaseUrl || 
+                   `${origin}/api/v1`;
+      
+      console.log('Running in self-hosted mode with API endpoint:', this.baseUrl);
+    } else {
+      // For cloud mode, use the Cognis API
+      this.baseUrl = config?.baseUrl || 
+                   envBaseUrl || 
+                   'https://api.cognis.com/v1';
+    }
+    
+    if (!this.apiKey && !this.selfHosted) {
       console.warn('Cognis API key not found. Some features may not work.');
-      // Try to load from localStorage as last resort
-      const localStorageKey = localStorage.getItem('cognis_api_key');
-      if (localStorageKey) {
-        console.log('Using API key from localStorage');
-        this.apiKey = localStorageKey;
+    }
+    
+    // Initialize connection
+    this.initializeConnection();
+  }
+  
+  // Event system for connection status
+  addEventListener(event: string, callback: Function) {
+    if (!this.eventListeners.has(event)) {
+      this.eventListeners.set(event, []);
+    }
+    this.eventListeners.get(event)?.push(callback);
+  }
+  
+  removeEventListener(event: string, callback: Function) {
+    if (!this.eventListeners.has(event)) return;
+    const callbacks = this.eventListeners.get(event) || [];
+    this.eventListeners.set(event, callbacks.filter(cb => cb !== callback));
+  }
+  
+  private triggerEvent(event: string, data?: any) {
+    if (!this.eventListeners.has(event)) return;
+    const callbacks = this.eventListeners.get(event) || [];
+    callbacks.forEach(callback => callback(data));
+  }
+  
+  // Initialize connection to API
+  private async initializeConnection() {
+    this.connectionStatus = 'connecting';
+    this.triggerEvent('connecting');
+    
+    try {
+      // Check if the API is available
+      const response = await fetch(`${this.baseUrl}/health`, {
+        method: 'GET',
+        headers: this.getHeaders(),
+      }).catch(() => ({ ok: false }));
+      
+      if (response.ok) {
+        this.connectionStatus = 'connected';
+        this.reconnectAttempts = 0;
+        this.triggerEvent('connected');
+        console.log('Connected to Cognis API');
+      } else {
+        throw new Error('API health check failed');
+      }
+    } catch (error) {
+      this.connectionStatus = 'disconnected';
+      this.triggerEvent('disconnected', error);
+      console.warn('Failed to connect to Cognis API:', error);
+      
+      // Try to reconnect if we haven't exceeded max attempts
+      if (this.reconnectAttempts < this.maxReconnectAttempts) {
+        this.reconnectAttempts++;
+        console.log(`Reconnect attempt ${this.reconnectAttempts} of ${this.maxReconnectAttempts}...`);
+        setTimeout(() => this.initializeConnection(), 5000 * this.reconnectAttempts);
       }
     }
   }
+  
+  // Get headers for API requests
+  private getHeaders() {
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
+    
+    if (this.apiKey && !this.selfHosted) {
+      headers['Authorization'] = `Bearer ${this.apiKey}`;
+    }
+    
+    return headers;
+  }
 
   private async makeRequest<T>(endpoint: string, data: any): Promise<T> {
-    if (!this.apiKey) {
+    // If in self-hosted mode, don't require API key
+    if (!this.apiKey && !this.selfHosted) {
       throw new Error('Cognis API key not configured');
     }
-
-    const response = await fetch(`${this.baseUrl}${endpoint}`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${this.apiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(data),
-    });
-
-    if (!response.ok) {
-      const error = await response.json().catch(() => ({ error: { message: 'Unknown error' } }));
-      throw new Error(error.error?.message || `HTTP ${response.status}: ${response.statusText}`);
+    
+    // Ensure connection is established
+    if (this.connectionStatus !== 'connected') {
+      try {
+        await this.initializeConnection();
+      } catch (error) {
+        if (this.selfHosted) {
+          console.warn('Self-hosted API connection failed, but continuing with request');
+        } else {
+          throw new Error('API connection not established');
+        }
+      }
     }
 
-    return response.json();
+    try {
+      // Prepare full URL - ensure endpoint starts with slash
+      const url = `${this.baseUrl}${endpoint.startsWith('/') ? endpoint : '/' + endpoint}`;
+      
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: this.getHeaders(),
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({ 
+          error: { message: `HTTP ${response.status}: ${response.statusText}` } 
+        }));
+        throw new Error(error.error?.message || `HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      // Parse JSON response
+      const result = await response.json();
+      return result as T;
+    } catch (error: any) {
+      // Handle common connection errors
+      if (error.message.includes('Failed to fetch') || 
+          error.message.includes('NetworkError')) {
+        this.connectionStatus = 'disconnected';
+        this.triggerEvent('disconnected', error);
+      }
+      throw error;
+    }
   }
 
   async createEmbeddings(request: EmbeddingRequest): Promise<EmbeddingResponse> {
@@ -231,8 +367,52 @@ export class CognisService {
     }
   }
 
+  /**
+   * Check if the API service is properly configured
+   */
   isConfigured(): boolean {
-    return !!this.apiKey;
+    // In self-hosted mode, we don't need an API key
+    return this.selfHosted || !!this.apiKey;
+  }
+  
+  /**
+   * Get current connection status
+   */
+  getConnectionStatus(): 'connected' | 'disconnected' | 'connecting' {
+    return this.connectionStatus;
+  }
+  
+  /**
+   * Check if we're in self-hosted mode
+   */
+  isSelfHosted(): boolean {
+    return this.selfHosted;
+  }
+  
+  /**
+   * Manually attempt to reconnect to the API
+   */
+  async reconnect(): Promise<boolean> {
+    await this.initializeConnection();
+    return this.connectionStatus === 'connected';
+  }
+  
+  /**
+   * Get API base URL
+   */
+  getBaseUrl(): string {
+    return this.baseUrl;
+  }
+  
+  /**
+   * Set new API key
+   */
+  setApiKey(apiKey: string, persist: boolean = true): void {
+    this.apiKey = apiKey;
+    if (persist) {
+      localStorage.setItem('cognis_api_key', apiKey);
+    }
+    this.initializeConnection();
   }
 }
 

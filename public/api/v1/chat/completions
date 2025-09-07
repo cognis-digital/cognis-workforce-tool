@@ -1,0 +1,21 @@
+{
+  "id": "sim-chat-completion-01",
+  "object": "chat.completion",
+  "created": 1725678321,
+  "model": "Cognis-Zenith-4.0",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "I'm a self-hosted Cognis API running locally on your system. I'm connected to your frontend application and ready to assist with any tasks. How can I help you today?"
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 15,
+    "completion_tokens": 25,
+    "total_tokens": 40
+  }
+}

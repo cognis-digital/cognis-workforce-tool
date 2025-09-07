@@ -1,0 +1,11 @@
+{
+  "status": "ok",
+  "version": "1.0.0",
+  "timestamp": "2025-09-07T03:45:21-04:00",
+  "mode": "self-hosted",
+  "services": {
+    "api": "available",
+    "database": "connected",
+    "model": "loaded"
+  }
+}
