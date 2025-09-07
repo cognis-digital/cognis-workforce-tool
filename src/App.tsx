@@ -1,8 +1,10 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { HashRouter as Router, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { WalletProvider } from './contexts/WalletContext';
 import { useInitializeApp } from './hooks/useInitializeApp';
+import { usePageViewTracking, useComponentTracking } from './hooks/useActivityTracking';
+import { rbacLoggingService, initializeRBACLoggingSchema } from './services/rbacLogging';
 import Dashboard from './pages/Dashboard';
 import Login from './pages/Login';
 import TaskCenter from './pages/TaskCenter';
@@ -28,6 +30,12 @@ const queryClient = new QueryClient();
 function AppContent() {
   useInitializeApp();
   const [useArchitecturalDesign, setUseArchitecturalDesign] = useState(true);
+  
+  // Track page views with RBAC logging
+  usePageViewTracking();
+  
+  // Track component mounting with RBAC logging
+  const { trackInteraction } = useComponentTracking('AppContent');
 
   return (
     <div className="min-h-screen bg-gradient-primary">
@@ -59,6 +67,17 @@ function AppContent() {
 }
 
 function App() {
+  // Initialize RBAC logging schema
+  useEffect(() => {
+    initializeRBACLoggingSchema();
+    console.log('RBAC Logging System Initialized');
+    
+    // Clean up logging on unmount
+    return () => {
+      rbacLoggingService.flush();
+    };
+  }, []);
+  
   return (
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>

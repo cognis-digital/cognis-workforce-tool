@@ -1,9 +1,5 @@
 // Import polyfills first to ensure they're applied before any code runs
-import './polyfills';
-
-// Setup error handlers for browser extensions
-import { setupRuntimeErrorHandlers } from './utils/errorHandlers';
-setupRuntimeErrorHandlers();
+import './utils/browser-polyfills.js';
 
 import React, { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';

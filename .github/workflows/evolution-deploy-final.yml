@@ -95,7 +95,7 @@ jobs:
         run: npm run build
         
       - name: Cache Build Artifacts
-        uses: actions/cache@c64c572c5ecb4ec68ad9f5e7e1b4e07ac7ee4e9f # v3.2.6
+        uses: actions/cache@4723a6db48837a78c6bfa352b7b417cc6a9e4389 # v3.3.2
         with:
           path: |
             ./dist
@@ -138,7 +138,7 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           
       - name: Restore Cached Build
-        uses: actions/cache@c64c572c5ecb4ec68ad9f5e7e1b4e07ac7ee4e9f # v3.2.6
+        uses: actions/cache@4723a6db48837a78c6bfa352b7b417cc6a9e4389 # v3.3.2
         with:
           path: |
             ./dist
@@ -167,7 +167,7 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           
       - name: Restore Cached Build
-        uses: actions/cache@c64c572c5ecb4ec68ad9f5e7e1b4e07ac7ee4e9f # v3.2.6
+        uses: actions/cache@4723a6db48837a78c6bfa352b7b417cc6a9e4389 # v3.3.2
         with:
           path: |
             ./dist
@@ -210,7 +210,7 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           
       - name: Restore Cached Build
-        uses: actions/cache@c64c572c5ecb4ec68ad9f5e7e1b4e07ac7ee4e9f # v3.2.6
+        uses: actions/cache@4723a6db48837a78c6bfa352b7b417cc6a9e4389 # v3.3.2
         with:
           path: |
             ./dist
@@ -266,7 +266,7 @@ jobs:
           echo "- ✅ Runtime.lastError handling - Message channel errors gracefully managed" >> deployment-report.md
           
       - name: Upload Deployment Report
-        uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # v3.1.2
+        uses: actions/upload-artifact@a8a3f3ad30e3422c9c7b888a15615d19a852ae32 # v3.1.3
         with:
           name: deployment-report
           path: deployment-report.md

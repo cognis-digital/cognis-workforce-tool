@@ -15,8 +15,11 @@ import {
   Key,
   Save,
   RefreshCw,
-  CheckCircle
+  CheckCircle,
+  BarChart3,
+  Activity
 } from 'lucide-react';
+import RBACMonitoringDashboard from '../components/admin/RBACMonitoringDashboard';
 import { useUserProfile, useAuthActions } from '../store/authStore';
 import { useNotificationActions } from '../store/appStore';
 import { stripeService } from '../services/stripe';
@@ -39,12 +42,17 @@ export default function Settings() {
     audioProcessing: localStorage.getItem('cognis_audio_enabled') === 'true'
   });
 
+  // Get admin tabs based on user role
+  const isAdmin = userProfile?.role === 'admin';
+  
   const tabs = [
     { id: 'profile', label: 'Profile', icon: User },
     { id: 'billing', label: 'Billing', icon: CreditCard },
     { id: 'notifications', label: 'Notifications', icon: Bell },
     { id: 'security', label: 'AI Configuration', icon: SettingsIcon },
-    { id: 'account', label: 'Account Security', icon: Shield }
+    { id: 'account', label: 'Account Security', icon: Shield },
+    // Only show monitoring tab for admins
+    ...(isAdmin ? [{ id: 'monitoring', label: 'Activity Monitoring', icon: Activity }] : [])
   ];
 
   const plans = [
@@ -719,6 +727,11 @@ export default function Settings() {
                 </div>
               </div>
             </div>
+          </div>
+        )}
+        {activeTab === 'monitoring' && isAdmin && (
+          <div className="lg:col-span-3">
+            <RBACMonitoringDashboard title="User Activity Monitoring" />
           </div>
         )}
         </>

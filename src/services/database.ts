@@ -44,7 +44,7 @@ const insertDemoData = () => {
     user_id: userId,
     org_id: orgId,
     display_name: 'Demo User',
-    role: 'admin',
+    role: 'demo',
     tier: 'free', // Demo user starts with free tier for testing
     trial_ends_at: null,
     created_at: new Date().toISOString(),
