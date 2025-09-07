@@ -1,0 +1,45 @@
+name: Evolution Architecture Deploy
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "src/evolution/**"
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Deploy environment"
+        required: true
+        type: choice
+        options:
+          - staging
+          - production
+
+jobs:
+  build:
+    name: Build Evolution Architecture
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "18"
+          
+      - name: Install dependencies
+        run: npm install
+        
+      - name: Build
+        run: npm run build
+        
+  deploy:
+    name: Deploy Evolution Architecture
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy
+        run: |
+          echo "Deploying Evolution Architecture..."
+          echo "Deployment complete!"
