@@ -68,14 +68,21 @@ export default function Login() {
         </div>
 
         {/* Demo Button */}
-        <button
-          onClick={handleDemoLogin}
-          disabled={loading}
-          className="w-full bg-gradient-to-r from-primary-600 to-primary-700 text-white px-6 py-3 rounded-2xl font-medium hover:opacity-90 transition-opacity disabled:opacity-50 mb-6 flex items-center justify-center gap-2"
-        >
-          {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Zap className="w-4 h-4" />}
-          Try Demo Account
-        </button>
+        <div className="mb-6">
+          <button
+            onClick={handleDemoLogin}
+            disabled={loading}
+            className="w-full bg-gradient-to-r from-primary-600 to-primary-700 text-white px-6 py-3 rounded-2xl font-medium hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2"
+          >
+            {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Zap className="w-4 h-4" />}
+            Try Demo Account
+          </button>
+          <div className="mt-2 text-center text-sm bg-primary-500/20 py-2 rounded-lg">
+            <p className="font-medium">Demo Credentials:</p>
+            <p>Email: <span className="font-mono">demo@cognis.digital</span></p>
+            <p>Password: <span className="font-mono">demo123</span></p>
+          </div>
+        </div>
 
         <div className="relative mb-6">
           <div className="absolute inset-0 flex items-center">
