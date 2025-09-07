@@ -29,7 +29,7 @@ const queryClient = new QueryClient();
 
 function AppContent() {
   useInitializeApp();
-  const [useArchitecturalDesign, setUseArchitecturalDesign] = useState(true);
+  const [useArchitecturalDesign, setUseArchitecturalDesign] = React.useState(true);
   
   // Track page views with RBAC logging
   usePageViewTracking();
