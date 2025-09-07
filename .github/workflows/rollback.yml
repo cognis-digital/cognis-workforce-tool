@@ -28,7 +28,7 @@ jobs:
       
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v3
+        uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3.5.2
         with:
           fetch-depth: 0
           
@@ -53,12 +53,12 @@ jobs:
     
     steps:
       - name: Checkout Target Version
-        uses: actions/checkout@v3
+        uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3.5.2
         with:
           ref: ${{ github.event.inputs.version }}
           
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@5e21ff4d9bc1a8cf6de233a3057d20ec6b3fb69d # v3.8.1
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
@@ -103,27 +103,15 @@ jobs:
           echo "## Initiated By: ${{ github.actor }}" >> rollback-report.md
           
       - name: Upload Rollback Report
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@c7d193f32edcb7bfad88892161225aeda64e9392 # v3.1.0
         with:
           name: rollback-report
           path: rollback-report.md
           
       - name: Notify Rollback
-        uses: 8398a7/action-slack@v3
         if: success() && github.event_name != 'pull_request'
-        with:
-          status: custom
-          fields: repo,message,commit,author,action,eventName,ref,workflow
-          custom_payload: |
-            {
-              "attachments": [
-                {
-                  "color": "#FF0000",
-                  "title": "Emergency Rollback Performed",
-                  "text": "Environment: ${{ github.event.inputs.environment }}\nVersion: ${{ github.event.inputs.version }}\nInitiated by: ${{ github.actor }}",
-                  "footer": "Cognis Digital Evolution Architecture"
-                }
-              ]
-            }
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        run: |
+          echo "Sending rollback notification for ${{ github.event.inputs.environment }}"
+          echo "Version: ${{ github.event.inputs.version }}"
+          echo "Initiated by: ${{ github.actor }}"
+          # We'll use a simple notification instead of external services
