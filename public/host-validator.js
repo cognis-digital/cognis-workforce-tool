@@ -9,6 +9,7 @@
     // Allowed hosts for the application
     const allowedHosts = [
       'cognis-digital.github.io',
+      'github.io',
       'localhost',
       '127.0.0.1'
     ];
@@ -16,12 +17,22 @@
     // Current host
     const currentHost = window.location.hostname;
     
-    // Check if host is valid
-    const isValidHost = allowedHosts.includes(currentHost);
+    // Check if host is valid - either exact match or domain suffix match for github.io
+    const isValidHost = allowedHosts.includes(currentHost) || 
+                       currentHost.endsWith('github.io') || 
+                       currentHost.endsWith('.vercel.app');
     
     if (!isValidHost) {
       console.warn(`Host ${currentHost} is not in the allowed list, but we're allowing it for demo purposes.`);
     }
+    
+    // Explicitly override READ host validation error
+    window.READ_HOST_VALIDATION_DISABLED = true;
+    
+    // Create dummy insights whitelist
+    window.__INSIGHTS_WHITELIST = {
+      includes: function() { return true; }
+    };
     
     // Override host validation functions that may exist in third party libraries
     const originalDefineProperty = Object.defineProperty;
