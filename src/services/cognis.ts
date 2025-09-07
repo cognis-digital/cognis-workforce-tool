@@ -54,16 +54,28 @@ export class CognisService {
   private baseUrl = 'https://api.cognis.com/v1';
 
   constructor(apiKey?: string) {
-    // Safe access to env variables with type checking
-    const envApiKey = typeof import.meta === 'object' && 
-      import.meta && 
-      'env' in import.meta ? 
-      (import.meta as any).env.VITE_COGNIS_API_KEY : undefined;
+    // Get API key from window.ENV (GitHub Pages) or import.meta.env (dev)
+    let envApiKey: string | undefined;
+    
+    // Check window.ENV first (production/GitHub Pages)
+    if (typeof window !== 'undefined' && window.ENV && window.ENV.VITE_COGNIS_API_KEY) {
+      envApiKey = window.ENV.VITE_COGNIS_API_KEY;
+    }
+    // Fallback to import.meta.env (development)
+    else if (typeof import.meta === 'object' && import.meta && 'env' in import.meta) {
+      envApiKey = (import.meta as any).env.VITE_COGNIS_API_KEY;
+    }
     
     this.apiKey = apiKey || envApiKey || '';
     
     if (!this.apiKey) {
-      console.warn('$CGNS API key not found. Some features may not work.');
+      console.warn('Cognis API key not found. Some features may not work.');
+      // Try to load from localStorage as last resort
+      const localStorageKey = localStorage.getItem('cognis_api_key');
+      if (localStorageKey) {
+        console.log('Using API key from localStorage');
+        this.apiKey = localStorageKey;
+      }
     }
   }
 
