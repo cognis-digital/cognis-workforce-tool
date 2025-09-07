@@ -54,10 +54,16 @@ export class CognisService {
   private baseUrl = 'https://api.cognis.com/v1';
 
   constructor(apiKey?: string) {
-    this.apiKey = apiKey || import.meta.env.VITE_COGNIS_API_KEY || '';
+    // Safe access to env variables with type checking
+    const envApiKey = typeof import.meta === 'object' && 
+      import.meta && 
+      'env' in import.meta ? 
+      (import.meta as any).env.VITE_COGNIS_API_KEY : undefined;
+    
+    this.apiKey = apiKey || envApiKey || '';
     
     if (!this.apiKey) {
-      console.warn('Cognis API key not found. Some features may not work.');
+      console.warn('$CGNS API key not found. Some features may not work.');
     }
   }
 

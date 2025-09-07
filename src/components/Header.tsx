@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Menu, Bell, User } from 'lucide-react';
+import { Menu, Bell, User, Crown } from 'lucide-react';
 import { useUserProfile } from '../store/authStore';
 import { useWallet } from '../contexts/WalletContext';
 import WalletStatus from './WalletStatus';
