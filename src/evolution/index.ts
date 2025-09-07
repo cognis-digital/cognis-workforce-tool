@@ -1,20 +1,29 @@
-import ApplicationEvolutionManager from './lifecycle/applicationEvolutionManager';
-import StateAnalysisEngine from './lifecycle/stateAnalysisEngine';
-import { AdaptiveUI, withAdaptiveEvolution } from './lifecycle/adaptiveUI';
-import { createTimeSeriesStore } from './store/timeSeriesStore';
-import PolymorphicCodeGenerator from './codegen/polymorphicGenerator';
+import evolutionManager from './core/applicationEvolutionManager';
+import stateAnalysisEngine from './core/stateAnalysisEngine';
+import { AdaptiveUI, withAdaptiveEvolution, useEvolution } from './core/adaptiveUI';
+import { createTimeSeriesStore } from './core/timeSeriesStore';
+import PolymorphicCodeGenerator from './core/polymorphicGenerator';
+import * as Types from './core/types';
 
-// Create singleton instances
-const evolutionManager = new ApplicationEvolutionManager();
-const stateAnalysisEngine = new StateAnalysisEngine();
-
+// Re-export all components
 export {
+  // Singleton instances
   evolutionManager,
   stateAnalysisEngine,
+  
+  // UI components
   AdaptiveUI,
   withAdaptiveEvolution,
+  useEvolution,
+  
+  // Core functionality
   createTimeSeriesStore,
   PolymorphicCodeGenerator,
-  ApplicationEvolutionManager,
-  StateAnalysisEngine
+  
+  // Types
+  Types
 };
+
+// Export implementations when available
+export * from './implementations/index';
+

@@ -1,12 +1,13 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Menu, Bell, User, Zap } from 'lucide-react';
+import { Menu, Bell, User } from 'lucide-react';
 import { useUserProfile } from '../store/authStore';
 import { useWallet } from '../contexts/WalletContext';
 import WalletStatus from './WalletStatus';
 import NetworkSwitcher from './NetworkSwitcher';
 import UsageIndicator from './UsageIndicator';
 import ConnectWalletButton from './ConnectWalletButton';
+import Logo from './branding/Logo';
 
 interface HeaderProps {
   onMenuClick: () => void;
@@ -31,13 +32,7 @@ export default function Header({ onMenuClick, serverStatus = 'online' }: HeaderP
           </button>
           
           <div className="hidden lg:flex items-center gap-3">
-            <div className="w-8 h-8 bg-gradient-to-br from-primary-600 to-primary-700 rounded-xl flex items-center justify-center">
-              <Zap className="w-4 h-4 text-white" />
-            </div>
-            <div>
-              <h1 className="text-text-heading font-semibold text-lg">Cognis Digital</h1>
-              <p className="text-text-muted text-xs">AI Workforce Platform</p>
-            </div>
+            <Logo size="medium" />
           </div>
         </div>
 
