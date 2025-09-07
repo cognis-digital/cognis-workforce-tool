@@ -9,5 +9,6 @@ window.ENV = {
   "VITE_APP_BUILD_TIME": new Date().toISOString(),
   "VITE_APP_COMMIT_HASH": "production",
   "VITE_PUBLIC_URL": "/cognis-workforce-tool",
-  "VITE_COGNIS_API_KEY": "cg-sk-MzLuQvSdbzIF7OTChCMmGUAXsw1K8nFp"
+  "VITE_COGNIS_API_KEY": "cg-sk-MzLuQvSdbzIF7OTChCMmGUAXsw1K8nFp",
+  "PROJECT_ROOT": "/Users/admin/Downloads/Cognis Workforce Tool"
 };
