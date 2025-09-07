@@ -1,0 +1,35 @@
+name: Environment Setup
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        required: true
+        type: string
+    secrets:
+      ENV_FILE:
+        required: true
+
+jobs:
+  setup:
+    name: Setup Environment
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Create Environment Configuration
+        run: |
+          echo "${{ secrets.ENV_FILE }}" > .env.${{ inputs.environment }}
+          
+      - name: Validate Environment File
+        run: |
+          if [ ! -s .env.${{ inputs.environment }} ]; then
+            echo "Error: Environment file is empty or not created correctly"
+            exit 1
+          fi
+          
+      - name: Upload Environment File
+        uses: actions/upload-artifact@v3
+        with:
+          name: env-file-${{ inputs.environment }}
+          path: .env.${{ inputs.environment }}
+          retention-days: 1

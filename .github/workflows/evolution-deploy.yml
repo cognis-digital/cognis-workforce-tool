@@ -1,0 +1,221 @@
+name: Deploy Evolution Architecture
+
+on:
+  push:
+    branches: [ master ]
+    paths:
+      - 'src/evolution/**'
+      - 'src/components/**'
+      - 'package.json'
+      - 'package-lock.json'
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deployment Environment'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+          - staging
+          - production
+      forceRebuild:
+        description: 'Force full rebuild'
+        required: false
+        default: false
+        type: boolean
+
+env:
+  NODE_VERSION: '20.19'
+  CACHE_KEY: ${{ github.sha }}-evolution
+
+jobs:
+  build:
+    name: Build Evolution Architecture
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          
+      - name: Install Dependencies
+        run: npm install --legacy-peer-deps
+        
+      - name: Run Tests
+        run: npm test -- --coverage --watchAll=false
+        
+      - name: Build Project
+        run: npm run build
+        
+      - name: Cache Build Artifacts
+        uses: actions/cache@v3
+        with:
+          path: |
+            ./dist
+            ./build
+          key: ${{ env.CACHE_KEY }}
+          
+      - name: Generate Version Tag
+        id: version
+        run: |
+          VERSION=$(node -e "console.log(require('./package.json').version)")
+          COMMIT_SHORT=$(git rev-parse --short HEAD)
+          BUILD_TAG="v${VERSION}-${COMMIT_SHORT}"
+          echo "build_tag=${BUILD_TAG}" >> $GITHUB_OUTPUT
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          
+      - name: Create Release Tag
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            github.rest.git.createRef({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: `refs/tags/${{ steps.version.outputs.build_tag }}`,
+              sha: context.sha
+            })
+      
+  test-e2e:
+    name: End-to-End Tests
+    needs: build
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          
+      - name: Restore Cached Build
+        uses: actions/cache@v3
+        with:
+          path: |
+            ./dist
+            ./build
+          key: ${{ env.CACHE_KEY }}
+          
+      - name: Install Playwright
+        run: npx playwright install --with-deps
+        
+      - name: Run E2E Tests
+        run: npx playwright test
+        
+  deploy-staging:
+    name: Deploy to Staging
+    needs: [build, test-e2e]
+    if: github.event_name == 'push' || github.event.inputs.environment == 'staging'
+    runs-on: ubuntu-latest
+    environment: staging
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          
+      - name: Restore Cached Build
+        uses: actions/cache@v3
+        with:
+          path: |
+            ./dist
+            ./build
+          key: ${{ env.CACHE_KEY }}
+          
+      - name: Deploy to Staging
+        run: |
+          echo "Deploying to Staging Environment"
+          # Add your staging deployment commands here
+          # Example: npx netlify deploy --dir=dist
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_STAGING_SITE_ID }}
+          
+      - name: Verify Deployment
+        run: |
+          echo "Running deployment verification"
+          # Add verification script
+          # curl -s https://staging.cognisdigital.com/api/health | grep -q "ok"
+          
+  deploy-production:
+    name: Deploy to Production
+    needs: deploy-staging
+    if: github.event.inputs.environment == 'production'
+    runs-on: ubuntu-latest
+    environment: production
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          
+      - name: Restore Cached Build
+        uses: actions/cache@v3
+        with:
+          path: |
+            ./dist
+            ./build
+          key: ${{ env.CACHE_KEY }}
+          
+      - name: Deploy to Production
+        run: |
+          echo "Deploying to Production Environment"
+          # Add your production deployment commands here
+          # Example: npx netlify deploy --dir=dist --prod
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_PRODUCTION_SITE_ID }}
+          
+      - name: Verify Production Deployment
+        run: |
+          echo "Running production deployment verification"
+          # Add verification script
+          # curl -s https://app.cognisdigital.com/api/health | grep -q "ok"
+          
+  notify:
+    name: Deployment Notification
+    needs: [deploy-staging, deploy-production]
+    if: always()
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Send Deployment Status
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          fields: repo,message,commit,author,action,eventName,ref,workflow
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        if: ${{ secrets.SLACK_WEBHOOK_URL != '' }}
+        
+      - name: Create Deployment Report
+        if: always()
+        run: |
+          echo "# Deployment Report" > deployment-report.md
+          echo "## Status: ${{ job.status }}" >> deployment-report.md
+          echo "## Version: ${{ needs.build.outputs.version }}" >> deployment-report.md
+          echo "## Build Tag: ${{ needs.build.outputs.build_tag }}" >> deployment-report.md
+          echo "## Deployment Time: $(date)" >> deployment-report.md
+          
+      - name: Upload Deployment Report
+        uses: actions/upload-artifact@v3
+        with:
+          name: deployment-report
+          path: deployment-report.md

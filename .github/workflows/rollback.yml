@@ -1,0 +1,129 @@
+name: Rollback Deployment
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to rollback to (tag or commit)'
+        required: true
+        type: string
+      environment:
+        description: 'Environment to rollback'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
+
+env:
+  NODE_VERSION: '20.19'
+
+jobs:
+  validate:
+    name: Validate Rollback Target
+    runs-on: ubuntu-latest
+    outputs:
+      valid: ${{ steps.check.outputs.valid }}
+      
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          
+      - name: Check Target Exists
+        id: check
+        run: |
+          if git rev-parse --verify "${{ github.event.inputs.version }}" >/dev/null 2>&1; then
+            echo "Valid rollback target found"
+            echo "valid=true" >> $GITHUB_OUTPUT
+          else
+            echo "Error: Rollback target not found"
+            echo "valid=false" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+  
+  rollback:
+    name: Perform Rollback
+    needs: validate
+    if: needs.validate.outputs.valid == 'true'
+    runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.environment }}
+    
+    steps:
+      - name: Checkout Target Version
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.inputs.version }}
+          
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          
+      - name: Install Dependencies
+        run: npm install --legacy-peer-deps
+        
+      - name: Build Project
+        run: npm run build
+        
+      - name: Deploy to Staging
+        if: github.event.inputs.environment == 'staging'
+        run: |
+          echo "Rolling back to ${{ github.event.inputs.version }} on staging"
+          # Add staging rollback deployment commands here
+          # Example: npx netlify deploy --dir=dist
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_STAGING_SITE_ID }}
+          
+      - name: Deploy to Production
+        if: github.event.inputs.environment == 'production'
+        run: |
+          echo "Rolling back to ${{ github.event.inputs.version }} on production"
+          # Add production rollback deployment commands here
+          # Example: npx netlify deploy --dir=dist --prod
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_PRODUCTION_SITE_ID }}
+          
+      - name: Verify Rollback
+        run: |
+          echo "Verifying rollback deployment"
+          # Add verification steps
+          
+      - name: Create Rollback Report
+        run: |
+          echo "# Rollback Report" > rollback-report.md
+          echo "## Environment: ${{ github.event.inputs.environment }}" >> rollback-report.md
+          echo "## Target Version: ${{ github.event.inputs.version }}" >> rollback-report.md
+          echo "## Rollback Time: $(date)" >> rollback-report.md
+          echo "## Initiated By: ${{ github.actor }}" >> rollback-report.md
+          
+      - name: Upload Rollback Report
+        uses: actions/upload-artifact@v3
+        with:
+          name: rollback-report
+          path: rollback-report.md
+          
+      - name: Notify Rollback
+        uses: 8398a7/action-slack@v3
+        with:
+          status: custom
+          fields: repo,message,commit,author,action,eventName,ref,workflow
+          custom_payload: |
+            {
+              "attachments": [
+                {
+                  "color": "#FF0000",
+                  "title": "Emergency Rollback Performed",
+                  "text": "Environment: ${{ github.event.inputs.environment }}\nVersion: ${{ github.event.inputs.version }}\nInitiated by: ${{ github.actor }}",
+                  "footer": "Cognis Digital Evolution Architecture"
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        if: ${{ secrets.SLACK_WEBHOOK_URL != '' }}
