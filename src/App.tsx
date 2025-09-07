@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
+import { useState, useEffect } from './hooks/reactHooks';
 import { HashRouter as Router, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { WalletProvider } from './contexts/WalletContext';
@@ -29,7 +30,7 @@ const queryClient = new QueryClient();
 
 function AppContent() {
   useInitializeApp();
-  const [useArchitecturalDesign, setUseArchitecturalDesign] = React.useState(true);
+  const [useArchitecturalDesign, setUseArchitecturalDesign] = useState(true);
   
   // Track page views with RBAC logging
   usePageViewTracking();

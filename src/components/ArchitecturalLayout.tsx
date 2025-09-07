@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React from 'react';
+import { useState, useEffect } from '../hooks/reactHooks';
 import { Outlet } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import Sidebar from './Sidebar';
@@ -12,10 +13,10 @@ export default function ArchitecturalLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const activeModal = useAppStore(state => state.activeModal);
   const setActiveModal = useAppStore(state => state.setActiveModal);
-  const [serverStatus, setServerStatus] = useState('online'); // Default to online for self-hosted
+  const [serverStatus, setServerStatus] = useState<'online' | 'offline' | 'degraded' | 'local'>('online'); // Default to online for self-hosted
 
   // Simulating local server status check
-  React.useEffect(() => {
+  useEffect(() => {
     const checkLocalServerStatus = () => {
       // In a self-hosted environment, this would check local server health
       // For now, we'll simulate an online status
