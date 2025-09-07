@@ -110,6 +110,7 @@ jobs:
           
       - name: Notify Rollback
         uses: 8398a7/action-slack@v3
+        if: success() && github.event_name != 'pull_request'
         with:
           status: custom
           fields: repo,message,commit,author,action,eventName,ref,workflow
@@ -126,4 +127,3 @@ jobs:
             }
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-        if: ${{ secrets.SLACK_WEBHOOK_URL != '' }}

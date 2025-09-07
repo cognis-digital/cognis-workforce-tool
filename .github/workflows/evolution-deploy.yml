@@ -26,12 +26,15 @@ on:
 
 env:
   NODE_VERSION: '20.19'
-  CACHE_KEY: ${{ github.sha }}-evolution
+  CACHE_KEY: evolution-${{ github.sha }}
 
 jobs:
   build:
     name: Build Evolution Architecture
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      build_tag: ${{ steps.version.outputs.build_tag }}
     
     steps:
       - name: Checkout Code
@@ -79,7 +82,7 @@ jobs:
             github.rest.git.createRef({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              ref: `refs/tags/${{ steps.version.outputs.build_tag }}`,
+              ref: 'refs/tags/' + '${{ steps.version.outputs.build_tag }}',
               sha: context.sha
             })
       
@@ -198,12 +201,12 @@ jobs:
     steps:
       - name: Send Deployment Status
         uses: 8398a7/action-slack@v3
+        if: success() && github.event_name != 'pull_request'
         with:
           status: ${{ job.status }}
           fields: repo,message,commit,author,action,eventName,ref,workflow
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-        if: ${{ secrets.SLACK_WEBHOOK_URL != '' }}
         
       - name: Create Deployment Report
         if: always()
