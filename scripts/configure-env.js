@@ -5,9 +5,14 @@
  * It merges environment-specific variables with defaults and validates required values.
  */
 
-const fs = require('fs');
-const path = require('path');
-const dotenv = require('dotenv');
+import fs from 'fs';
+import path from 'path';
+import dotenv from 'dotenv';
+import { fileURLToPath } from 'url';
+
+// Get current directory in ESM context
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Determine environment
 const environment = process.env.NODE_ENV || 'development';
@@ -68,7 +73,7 @@ window.ENV = ${JSON.stringify(clientEnv, null, 2)};
 `;
 
 fs.writeFileSync(
-  path.join(process.cwd(), 'public', 'env-config.js'),
+  path.join(__dirname, '..', 'public', 'env-config.js'),
   clientEnvContent
 );
 
