@@ -1,0 +1,252 @@
+name: Blockchain Integration CI/CD
+
+# Add permissions statement to fix context access warnings
+permissions:
+  contents: read
+  id-token: write # Needed for authentication
+  issues: write
+  pull-requests: write
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'contracts/**'
+      - 'cognis-api/src/services/blockchain-service.ts'
+      - 'cognis-api/src/routes/blockchain.ts'
+      - 'src/components/blockchain/**'
+      - '.github/workflows/blockchain-integration.yml'
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - 'contracts/**'
+      - 'cognis-api/src/services/blockchain-service.ts'
+      - 'cognis-api/src/routes/blockchain.ts'
+      - 'src/components/blockchain/**'
+
+jobs:
+  test-contracts:
+    name: Test Smart Contracts
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Compile contracts
+        run: npx hardhat compile
+        
+      - name: Run contract tests
+        run: npx hardhat test
+        
+      - name: Generate coverage report
+        run: npx hardhat coverage
+        
+      - name: Upload coverage reports
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./coverage/lcov.info
+          flags: contracts
+          fail_ci_if_error: true
+  
+  test-api:
+    name: Test Blockchain API
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: |
+          npm ci
+          cd cognis-api && npm ci
+          
+      - name: Run API tests
+        run: |
+          cd cognis-api
+          npm test -- --grep "Blockchain"
+          
+      - name: Check TypeScript compile
+        run: |
+          cd cognis-api
+          npx tsc --noEmit
+  
+  lint:
+    name: Lint Code
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: |
+          npm ci
+          cd cognis-api && npm ci
+          
+      - name: Lint contracts
+        run: npx solhint 'contracts/**/*.sol'
+        
+      - name: Lint TypeScript
+        run: |
+          cd cognis-api
+          npx eslint src/services/blockchain-service.ts src/routes/blockchain.ts
+  
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Run Slither
+        uses: crytic/slither-action@v0.3.0
+        with:
+          target: 'contracts/'
+          slither-args: '--exclude-dependencies'
+          
+      - name: Run npm audit
+        run: |
+          npm audit --audit-level=high
+          cd cognis-api && npm audit --audit-level=high
+  
+  build:
+    name: Build and Package
+    needs: [test-contracts, test-api, lint]
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: |
+          npm ci
+          cd cognis-api && npm ci
+          
+      - name: Compile contracts
+        run: npx hardhat compile
+        
+      - name: Build API
+        run: |
+          cd cognis-api
+          npm run build
+          
+      - name: Package artifacts
+        run: |
+          mkdir -p dist/blockchain
+          cp -r artifacts dist/blockchain/
+          cp -r cognis-api/dist dist/blockchain/api
+          cp start-blockchain.sh dist/blockchain/
+          
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: blockchain-artifacts
+          path: dist/blockchain
+  
+  deploy-staging:
+    name: Deploy to Staging
+    needs: [build]
+    if: github.ref == 'refs/heads/develop'
+    runs-on: ubuntu-latest
+    environment: staging-blockchain
+
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Download artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: blockchain-artifacts
+          path: dist/blockchain
+          
+      - name: Deploy to staging
+        uses: appleboy/scp-action@v0.1.4
+        with:
+          host: ${{ secrets.STAGING_HOST }}
+          username: ${{ secrets.STAGING_USERNAME }}
+          key: ${{ secrets.STAGING_PRIVATE_KEY }}
+          source: "dist/blockchain/"
+          target: "${{ secrets.STAGING_TARGET_PATH }}"
+          strip_components: 1
+
+      - name: Run deploy script
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.STAGING_HOST }}
+          username: ${{ secrets.STAGING_USERNAME }}
+          key: ${{ secrets.STAGING_PRIVATE_KEY }}
+          script: |
+            cd ${{ secrets.STAGING_TARGET_PATH }}
+            ./deploy-blockchain-staging.sh
+  
+  deploy-production:
+    name: Deploy to Production
+    needs: [build]
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: production-blockchain
+
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Download artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: blockchain-artifacts
+          path: dist/blockchain
+          
+      - name: Deploy to production
+        uses: appleboy/scp-action@v0.1.4
+        with:
+          host: ${{ secrets.PRODUCTION_HOST }}
+          username: ${{ secrets.PRODUCTION_USERNAME }}
+          key: ${{ secrets.PRODUCTION_PRIVATE_KEY }}
+          source: "dist/blockchain/"
+          target: "${{ secrets.PRODUCTION_TARGET_PATH }}"
+          strip_components: 1
+
+      - name: Run deploy script
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.PRODUCTION_HOST }}
+          username: ${{ secrets.PRODUCTION_USERNAME }}
+          key: ${{ secrets.PRODUCTION_PRIVATE_KEY }}
+          script: |
+            cd ${{ secrets.PRODUCTION_TARGET_PATH }}
+            ./deploy-blockchain-production.sh

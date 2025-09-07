@@ -1,0 +1,7 @@
+# GitHub Workflow Validation Override
+# This file explicitly tells GitHub Actions and IDEs to ignore specific files
+# Created: 2025-09-07
+
+# Explicitly ignore files that don't exist anymore
+blockchain-integration-final.yml
+blockchain-integration-fixed.yml
