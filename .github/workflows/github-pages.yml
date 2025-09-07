@@ -32,7 +32,7 @@ jobs:
           VITE_PUBLIC_URL: "/cognis-workforce-tool"
           
       - name: Upload artifact
-        uses: actions/upload-pages-artifact@0252fc4ba7626eaa54d1a0f49fa3f9d093e26f6d # v1.0.0
+        uses: actions/upload-pages-artifact@v2
         with:
           path: ./dist
 

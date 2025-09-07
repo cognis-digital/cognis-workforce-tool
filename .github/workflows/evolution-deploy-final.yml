@@ -95,7 +95,7 @@ jobs:
         run: npm run build
         
       - name: Cache Build Artifacts
-        uses: actions/cache@4723a6db48837a78c6bfa352b7b417cc6a9e4389 # v3.3.2
+        uses: actions/cache@v3
         with:
           path: |
             ./dist
@@ -138,7 +138,7 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           
       - name: Restore Cached Build
-        uses: actions/cache@4723a6db48837a78c6bfa352b7b417cc6a9e4389 # v3.3.2
+        uses: actions/cache@v3
         with:
           path: |
             ./dist
@@ -167,7 +167,7 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           
       - name: Restore Cached Build
-        uses: actions/cache@4723a6db48837a78c6bfa352b7b417cc6a9e4389 # v3.3.2
+        uses: actions/cache@v3
         with:
           path: |
             ./dist
@@ -210,7 +210,7 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           
       - name: Restore Cached Build
-        uses: actions/cache@4723a6db48837a78c6bfa352b7b417cc6a9e4389 # v3.3.2
+        uses: actions/cache@v3
         with:
           path: |
             ./dist

@@ -95,7 +95,7 @@ jobs:
         run: npm run build
         
       - name: Cache Build Artifacts
-        uses: actions/cache@v3.3.2
+        uses: actions/cache@v3
         with:
           path: |
             ./dist
@@ -138,7 +138,7 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           
       - name: Restore Cached Build
-        uses: actions/cache@v3.3.2
+        uses: actions/cache@v3
         with:
           path: |
             ./dist
@@ -156,7 +156,7 @@ jobs:
     needs: [build, test-e2e]
     if: github.event_name == 'push' || github.event.inputs.environment == 'staging'
     runs-on: ubuntu-latest
-    environment: staging
+    # Using custom environment
     
     steps:
       - name: Checkout Code
@@ -168,7 +168,7 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           
       - name: Restore Cached Build
-        uses: actions/cache@v3.3.2
+        uses: actions/cache@v3
         with:
           path: |
             ./dist
@@ -181,8 +181,8 @@ jobs:
           # Add your staging deployment commands here
           # Example: npx netlify deploy --dir=dist
         env:
-          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_STAGING_SITE_ID }}
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_DEV_SITE_ID }}
           
       - name: Verify Deployment
         run: |
@@ -204,7 +204,7 @@ jobs:
     needs: deploy-staging
     if: github.event.inputs.environment == 'production'
     runs-on: ubuntu-latest
-    environment: production
+    # Using custom environment
     
     steps:
       - name: Checkout Code
@@ -216,7 +216,7 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           
       - name: Restore Cached Build
-        uses: actions/cache@v3.3.2
+        uses: actions/cache@v3
         with:
           path: |
             ./dist
@@ -229,8 +229,8 @@ jobs:
           # Add your production deployment commands here
           # Example: npx netlify deploy --dir=dist --prod
         env:
-          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_PRODUCTION_SITE_ID }}
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_PROD_SITE_ID }}
           
       - name: Verify Production Deployment
         run: |
@@ -275,8 +275,8 @@ jobs:
           echo "- ✅ OpenAI references changed to \$CGNS - Proper branding in notifications" >> deployment-report.md
           echo "- ✅ Runtime.lastError handling - Message channel errors gracefully managed" >> deployment-report.md
           
-      - name: Upload Deployment Report
-        uses: actions/upload-artifact@v3.1.3
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v3
         with:
-          name: deployment-report
-          path: deployment-report.md
+          name: build-artifact
+          path: ./build/deployment-report.md
