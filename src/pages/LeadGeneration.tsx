@@ -41,6 +41,14 @@ interface Lead {
   lastActivity: string;
 }
 
+interface LeadSearchParams {
+  industry: string;
+  companySize: string;
+  location: string;
+  budgetRange: string;
+  requirements: string;
+}
+
 export default function LeadGeneration() {
   const leadsFromState = useLeads();
   const user = useUser();
