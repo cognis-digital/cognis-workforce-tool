@@ -63,17 +63,13 @@ jobs:
         uses: actions/checkout@v3
         
       - name: Deploy to staging
+        env:
+          DEPLOY_HOST: ${{ env.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ env.DEPLOY_USER }}
         run: |
           echo "Deploying to staging environment"
-          # Access secrets using standard GitHub Actions secrets syntax
-          if [ -n "${{ secrets.STAGING_HOST }}" ]; then
-            echo "Host is configured"
-          fi
-          
-          if [ -n "${{ secrets.STAGING_USERNAME }}" ]; then
-            echo "Username is configured"
-          fi
-          
+          echo "Host: $DEPLOY_HOST"
+          echo "Username: $DEPLOY_USER"
           echo "Deployment complete!"
 
   deploy-production:
@@ -86,15 +82,11 @@ jobs:
         uses: actions/checkout@v3
         
       - name: Deploy to production
+        env:
+          DEPLOY_HOST: ${{ env.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ env.DEPLOY_USER }}
         run: |
           echo "Deploying to production environment"
-          # Access secrets using standard GitHub Actions secrets syntax
-          if [ -n "${{ secrets.PRODUCTION_HOST }}" ]; then
-            echo "Host is configured"
-          fi
-          
-          if [ -n "${{ secrets.PRODUCTION_USERNAME }}" ]; then
-            echo "Username is configured"
-          fi
-          
+          echo "Host: $DEPLOY_HOST"
+          echo "Username: $DEPLOY_USER"
           echo "Deployment complete!"

@@ -184,7 +184,7 @@ jobs:
     needs: [build]
     if: github.ref == 'refs/heads/develop'
     runs-on: ubuntu-latest
-    environment: staging-blockchain
+    environment: staging
 
     steps:
       - uses: actions/checkout@v3
@@ -198,21 +198,21 @@ jobs:
       - name: Deploy to staging
         uses: appleboy/scp-action@v0.1.4
         with:
-          host: ${{ secrets.STAGING_HOST }}
-          username: ${{ secrets.STAGING_USERNAME }}
-          key: ${{ secrets.STAGING_PRIVATE_KEY }}
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
           source: "dist/blockchain/"
-          target: "${{ secrets.STAGING_TARGET_PATH }}"
+          target: "${{ secrets.TARGET_PATH }}"
           strip_components: 1
 
       - name: Run deploy script
         uses: appleboy/ssh-action@v1.0.0
         with:
-          host: ${{ secrets.STAGING_HOST }}
-          username: ${{ secrets.STAGING_USERNAME }}
-          key: ${{ secrets.STAGING_PRIVATE_KEY }}
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            cd ${{ secrets.STAGING_TARGET_PATH }}
+            cd ${{ secrets.TARGET_PATH }}
             ./deploy-blockchain-staging.sh
   
   deploy-production:
@@ -220,7 +220,7 @@ jobs:
     needs: [build]
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-    environment: production-blockchain
+    environment: production
 
     steps:
       - uses: actions/checkout@v3
@@ -234,19 +234,19 @@ jobs:
       - name: Deploy to production
         uses: appleboy/scp-action@v0.1.4
         with:
-          host: ${{ secrets.PRODUCTION_HOST }}
-          username: ${{ secrets.PRODUCTION_USERNAME }}
-          key: ${{ secrets.PRODUCTION_PRIVATE_KEY }}
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
           source: "dist/blockchain/"
-          target: "${{ secrets.PRODUCTION_TARGET_PATH }}"
+          target: "${{ secrets.TARGET_PATH }}"
           strip_components: 1
 
       - name: Run deploy script
         uses: appleboy/ssh-action@v1.0.0
         with:
-          host: ${{ secrets.PRODUCTION_HOST }}
-          username: ${{ secrets.PRODUCTION_USERNAME }}
-          key: ${{ secrets.PRODUCTION_PRIVATE_KEY }}
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            cd ${{ secrets.PRODUCTION_TARGET_PATH }}
+            cd ${{ secrets.TARGET_PATH }}
             ./deploy-blockchain-production.sh
