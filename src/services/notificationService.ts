@@ -43,11 +43,14 @@ class NotificationService {
   async getUserNotificationPreferences(userId: string): Promise<NotificationPreferences> {
     try {
       // Fetch user preferences from the database
-      const { data, error } = await database
+      const response = await database
         .from('notification_preferences')
         .select('*')
         .eq('user_id', userId)
         .single();
+      
+      const data = response.data;
+      const error = response.error;
         
       if (error || !data) {
         console.log('No notification preferences found, using defaults');
@@ -76,11 +79,13 @@ class NotificationService {
   ): Promise<boolean> {
     try {
       // Check if preferences already exist
-      const { data: existingData } = await database
+      const existingResponse = await database
         .from('notification_preferences')
         .select('id')
         .eq('user_id', userId)
         .single();
+        
+      const existingData = existingResponse.data;
         
       const mappedPreferences = {
         email_enabled: preferences.email,
@@ -94,17 +99,21 @@ class NotificationService {
       
       if (existingData) {
         // Update existing preferences
-        const { error } = await database
+        const updateResponse = await database
           .from('notification_preferences')
           .update(mappedPreferences)
           .eq('id', existingData.id);
           
+        const error = updateResponse.error;
+          
         if (error) throw error;
       } else {
         // Create new preferences
-        const { error } = await database
+        const insertResponse = await database
           .from('notification_preferences')
           .insert([{ user_id: userId, ...mappedPreferences }]);
+          
+        const error = insertResponse.error;
           
         if (error) throw error;
       }
@@ -150,7 +159,7 @@ class NotificationService {
       console.log(`Body: ${emailTemplate.bodyText}`);
       
       // Record the notification in the database
-      const { error } = await database
+      const notificationResponse = await database
         .from('notifications')
         .insert([{
           user_id: userId,
@@ -161,6 +170,8 @@ class NotificationService {
           status: 'sent',
           data: JSON.stringify(data)
         }]);
+        
+      const error = notificationResponse.error;
         
       if (error) throw error;
       
@@ -178,7 +189,7 @@ class NotificationService {
     data: any = {}
   ): boolean {
     try {
-      const notificationActions = useNotificationActions.getState();
+      const notificationActions = useNotificationActions();
       
       // Different notification configurations based on type
       switch (type) {
@@ -269,11 +280,13 @@ class NotificationService {
       const userProfile = await this.getUserProfile(userId);
       if (!userProfile) return;
       
-      const { data: usageData } = await database
+      const usageResponse = await database
         .from('usage_metrics')
         .select('*')
         .eq('user_id', userId)
         .single();
+        
+      const usageData = usageResponse.data;
         
       if (!usageData) return;
       
@@ -432,11 +445,14 @@ class NotificationService {
   // Helper function to get user profile
   private async getUserProfile(userId: string): Promise<any> {
     try {
-      const { data, error } = await database
+      const response = await database
         .from('user_profiles')
         .select('*')
         .eq('user_id', userId)
         .single();
+        
+      const data = response.data;
+      const error = response.error;
         
       if (error || !data) {
         console.error('Error fetching user profile:', error);

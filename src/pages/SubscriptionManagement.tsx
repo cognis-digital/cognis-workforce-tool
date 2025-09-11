@@ -232,9 +232,9 @@ export default function SubscriptionManagement() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3 }}
             className={`bg-gradient-to-r ${
-              userProfile?.tier === 'free' ? 'from-gray-700/50 to-gray-800/50 border-gray-600/30' :
-              userProfile?.tier === 'basic' ? 'from-blue-700/30 to-blue-800/30 border-blue-500/30' :
-              userProfile?.tier === 'pro' ? 'from-purple-700/30 to-purple-800/30 border-purple-500/30' :
+              (userProfile?.tier as string) === 'free' ? 'from-gray-700/50 to-gray-800/50 border-gray-600/30' :
+              (userProfile?.tier as string) === 'basic' ? 'from-blue-700/30 to-blue-800/30 border-blue-500/30' :
+              (userProfile?.tier as string) === 'pro' ? 'from-purple-700/30 to-purple-800/30 border-purple-500/30' :
               'from-amber-700/30 to-amber-800/30 border-amber-500/30'
             } backdrop-blur-xl border rounded-2xl p-6`}
           >

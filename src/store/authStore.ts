@@ -8,8 +8,9 @@ interface UserProfile {
   user_id: string;
   display_name: string;
   role: string;
-  tier: 'free' | 'pro' | 'enterprise';
+  tier: 'free' | 'pro' | 'enterprise' | 'basic';
   trial_ends_at: string | null;
+  subscription_ends_at: string | null;
   org_id: string;
 }
 
@@ -75,6 +76,7 @@ export const useAuthStore = create<AuthState>()(
               role: 'admin',
               tier: 'pro',
               trial_ends_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+              subscription_ends_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
               org_id: 'demo-org-id'
             };
             
@@ -194,7 +196,8 @@ export const useAuthStore = create<AuthState>()(
               display_name: get().user?.email?.split('@')[0] || 'User',
               role: 'admin',
               tier: 'free',
-              trial_ends_at: null // Start with free tier, no trial
+              trial_ends_at: null, // Start with free tier, no trial
+              subscription_ends_at: null // Free tier doesn't have an expiration
             }])
             .select()
             .single();

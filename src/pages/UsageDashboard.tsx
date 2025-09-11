@@ -131,9 +131,9 @@ export default function UsageDashboard() {
               <h2 className="text-white/60 text-sm mb-1">Current Plan</h2>
               <div className="flex items-center gap-2 mb-1">
                 <span className={`text-2xl font-bold ${
-                  userProfile?.tier === 'free' ? 'text-gray-400' :
-                  userProfile?.tier === 'basic' ? 'text-blue-400' :
-                  userProfile?.tier === 'pro' ? 'text-purple-400' :
+                  (userProfile?.tier as string) === 'free' ? 'text-gray-400' :
+                  (userProfile?.tier as string) === 'basic' ? 'text-blue-400' :
+                  (userProfile?.tier as string) === 'pro' ? 'text-purple-400' :
                   'text-amber-400'
                 }`}>
                   {getCurrentPlanDetails()?.name || 'Free'}
