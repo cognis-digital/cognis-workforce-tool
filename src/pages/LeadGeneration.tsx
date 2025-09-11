@@ -41,7 +41,7 @@ interface Lead {
   lastActivity: string;
 }
 
-interface LeadSearchParams {
+export interface LeadSearchParams {
   industry: string;
   companySize: string;
   location: string;

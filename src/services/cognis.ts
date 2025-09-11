@@ -98,18 +98,23 @@ export class CognisService {
     
     // Set base URL with appropriate defaults
     if (this.selfHosted) {
-      // For self-hosted mode, use relative URL or window location as base
+      // For self-hosted mode, use the local server API endpoint
       const origin = window.location.origin;
       this.baseUrl = config?.baseUrl || 
                    envBaseUrl || 
                    `${origin}/api/v1`;
       
+      // In self-hosted mode, we don't need the API key for frontend calls
+      // as the backend will handle authentication
+      
       console.log('Running in self-hosted mode with API endpoint:', this.baseUrl);
     } else {
-      // For cloud mode, use the Cognis API
+      // For cloud mode, use the local server API which proxies to Cognis
+      // This ensures API keys stay on the server side
+      const origin = window.location.origin;
       this.baseUrl = config?.baseUrl || 
                    envBaseUrl || 
-                   'https://api.cognis.com/v1';
+                   `${origin}/api/v1`;
     }
     
     if (!this.apiKey && !this.selfHosted) {

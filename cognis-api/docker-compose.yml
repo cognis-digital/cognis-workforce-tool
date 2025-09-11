@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  cognis-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: cognis-api
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - API_VERSION=v1
+      - COGNIS_API_KEY=${COGNIS_API_KEY}
+      - COGNIS_API_URL=${COGNIS_API_URL:-https://api.cognisdigital.com/v1}
+      - COGNIS_DEFAULT_MODEL=${COGNIS_DEFAULT_MODEL:-Cognis-Zenith-4.0}
+      - JWT_SECRET=${JWT_SECRET:-change_this_in_production}
+      - CORS_ORIGIN=${CORS_ORIGIN:-*}
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+    volumes:
+      - ./logs:/app/logs
+    networks:
+      - cognis-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+networks:
+  cognis-network:
+    driver: bridge

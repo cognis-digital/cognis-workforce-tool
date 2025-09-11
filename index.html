@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <!-- React hook injector - must be first! -->
-    <script src="./react-hook-injector.js"></script>
+    <script src="./react-hook-injector.js" type="module"></script>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/cognis-workforce-tool/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -27,17 +27,17 @@
   <body>
     <div id="root"></div>
     <!-- Host validator for GitHub Pages deployment -->
-    <script src="./host-validator.js"></script>
+    <script src="./host-validator.js" type="module"></script>
     <!-- Environment config -->
-    <script src="./env-config.js"></script>
+    <script src="./env-config.js" type="module"></script>
     <!-- Default API key for demo -->
-    <script src="./default-api-key.js"></script>
+    <script src="./default-api-key.js" type="module"></script>
     <!-- API router for self-hosted mode -->
-    <script src="./api/v1/router.js"></script>
+    <script src="./api/v1/router.js" type="module"></script>
     <!-- Component-specific fixes -->
-    <script src="./component-fix.js"></script>
+    <script src="./component-fix.js" type="module"></script>
     <!-- React Hooks Polyfill -->
-    <script src="./react-polyfill.js"></script>
+    <script src="./react-polyfill.js" type="module"></script>
     <!-- Polyfills for browser compatibility -->
     <script type="module" src="./src/polyfills.js"></script>
     <script type="module" src="./src/main.tsx"></script>

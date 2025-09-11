@@ -1,0 +1,32 @@
+{
+  "name": "gitingest-full-prod",
+  "version": "1.0.0",
+  "description": "Cross-repo RAG with Qdrant, embeddings, Node backend, Python helpers, Streamlit UI",
+  "main": "dist/server.js",
+  "scripts": {
+    "bootstrap:qdrant": "docker-compose -f infra/docker-compose.qdrant.yml up -d",
+    "stop:qdrant": "docker-compose -f infra/docker-compose.qdrant.yml down",
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/server.js",
+    "dev": "ts-node src/server.ts",
+    "ingest": "ts-node src/ingest.ts",
+    "test": "jest --runInBand"
+  },
+  "dependencies": {
+    "axios": "^1.7.0",
+    "express": "^4.19.0",
+    "@qdrant/js-client-rest": "^1.1.0",
+    "body-parser": "^1.20.2",
+    "cors": "^2.8.5"
+  },
+  "devDependencies": {
+    "ts-node": "^10.9.2",
+    "typescript": "^5.6.0",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.1.1",
+    "@types/express": "^4.17.21",
+    "@types/jest": "^29.5.12",
+    "@types/node": "^20.10.0",
+    "supertest": "^6.3.4"
+  }
+}

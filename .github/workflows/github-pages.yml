@@ -1,0 +1,26 @@
+name: GitHub Pages Configuration
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/github-pages.yml'
+
+jobs:
+  configure:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        
+      - name: Configure GitHub Pages
+        run: |
+          echo "Setting up GitHub Pages configuration..."
+          # Create 404 page if it doesn't exist
+          [ ! -f "public/404.html" ] && cp public/index.html public/404.html || echo "404 page exists"
+          
+          # Create .nojekyll file to disable Jekyll processing
+          touch public/.nojekyll
+          
+          echo "GitHub Pages configuration complete"

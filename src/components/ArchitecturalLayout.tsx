@@ -1,5 +1,5 @@
 import React from 'react';
-import { useState, useEffect } from '../hooks/reactHooks';
+import { useStateSafe as useState, useEffectSafe as useEffect } from '../hooks/useReactHooks';
 import { Outlet } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import Sidebar from './Sidebar';

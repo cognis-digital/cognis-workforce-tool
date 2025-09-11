@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
+import { useStateSafe as useState, useEffectSafe as useEffect } from '../../hooks/useReactHooks';
 import { 
   rbacLoggingService, 
   InteractionLog, 

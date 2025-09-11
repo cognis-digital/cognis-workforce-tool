@@ -1,50 +1,86 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { geoSpatialTracker, GeoID, getCurrentLocation } from '../utils/geoSpatialTracker';
+import { geoSpatialTracker } from '../utils/geoSpatial/geoSpatialTracker';
 import { 
-  spatialPositioningSystem, 
-  SpatialPositioningSystem,
+  spatialPositioningSystem,
   UserSpatialContext
-} from '../utils/spatialPositioning';
+} from '../utils/geoSpatial/spatialPositioning';
 import {
   horizontalLandRegimeManager,
-  HorizontalLandRegime
-} from '../utils/horizontalLandRegime';
+  HorizontalLandRegime,
+  RegimeType
+} from '../utils/geoSpatial/horizontalLandRegime';
+import {
+  GID,
+  GeoCoordinate,
+  ECEFCoordinate
+} from '../utils/geoSpatial/types';
 import { useUserProfile } from '../store/authStore';
+
+// Import Evolution Architecture components
+import { useTimeSeriesStore } from '../evolution/core/time-series-store';
+import { useEvolutionState } from '../evolution/core/evolution-state';
 
 // Context value interface
 interface GeoSpatialContextValue {
   isTracking: boolean;
-  currentGID: GeoID | null;
+  currentGID: GID | null;
   currentRegime: HorizontalLandRegime | null;
   spatialContext: UserSpatialContext | null;
   nearbyUsers: UserSpatialContext[];
-  precision: number;
   error: Error | null;
   startTracking: () => Promise<void>;
   stopTracking: () => void;
-  setPrecision: (precision: number) => void;
+  createSnapshot: (name: string) => void;
+  loadSnapshot: (name: string) => boolean;
+  trackingHistory: GeoHistoryEntry[];
 }
 
 // Create context
 const GeoSpatialContext = createContext<GeoSpatialContextValue | null>(null);
+
+// Define geo history entry for Evolution Architecture integration
+interface GeoHistoryEntry {
+  timestamp: number;
+  gid: GID | null;
+  regime: HorizontalLandRegime | null;
+  nearbyUserCount: number;
+}
 
 // Provider component
 export const GeoSpatialProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const userProfile = useUserProfile();
   const userId = userProfile?.id || 'anonymous';
   
+  // Initialize time-series state store from Evolution Architecture
+  const timeSeriesStore = useTimeSeriesStore<{
+    geoHistory: GeoHistoryEntry[];
+    currentGID: GID | null;
+    currentRegime: HorizontalLandRegime | null;
+  }>({
+    geoHistory: [],
+    currentGID: null,
+    currentRegime: null
+  });
+  
+  // Evolution state for adaptive behavior
+  const evolutionState = useEvolutionState({
+    precision: 'medium',
+    trackingFrequency: 'normal',
+    prefetchRegimes: false
+  });
+
   // State
   const [isTracking, setIsTracking] = useState(false);
-  const [currentGID, setCurrentGID] = useState<GeoID | null>(null);
+  const [currentGID, setCurrentGID] = useState<GID | null>(null);
   const [currentRegime, setCurrentRegime] = useState<HorizontalLandRegime | null>(null);
   const [spatialContext, setSpatialContext] = useState<UserSpatialContext | null>(null);
   const [nearbyUsers, setNearbyUsers] = useState<UserSpatialContext[]>([]);
-  const [precision, setPrecisionState] = useState(10); // 10 meter precision default
   const [error, setError] = useState<Error | null>(null);
 
   // Handle GID updates
   useEffect(() => {
-    const handleGIDUpdate = (gid: GeoID) => {
+    const handleGIDUpdate = async (gid: GID) => {
+      // Update local state
       setCurrentGID(gid);
       
       // Update user's regime
@@ -52,15 +88,30 @@ export const GeoSpatialProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       setCurrentRegime(regime);
       
       // Update spatial context
-      const context = spatialPositioningSystem.updateUserPosition(userId, gid);
-      setSpatialContext(context);
+      const context = await spatialPositioningSystem.updateUserPosition(userId, gid);
+      if (context) {
+        setSpatialContext(context);
+        
+        // Update nearby users
+        const nearby = spatialPositioningSystem.getNearbyUsers(userId);
+        setNearbyUsers(nearby);
+      }
       
-      // Update nearby users
-      const nearby = context.neighbors.map(neighbor => 
-        spatialPositioningSystem.getUserContext(neighbor.userId)
-      ).filter(user => user !== undefined) as UserSpatialContext[];
+      // Record in time-series store for Evolution Architecture integration
+      const historyEntry: GeoHistoryEntry = {
+        timestamp: Date.now(),
+        gid,
+        regime,
+        nearbyUserCount: nearbyUsers.length
+      };
       
-      setNearbyUsers(nearby);
+      // Update time-series store
+      timeSeriesStore.updateState(prev => ({
+        ...prev,
+        geoHistory: [...prev.geoHistory, historyEntry],
+        currentGID: gid,
+        currentRegime: regime
+      }));
     };
     
     // Add listener for GID updates
@@ -77,8 +128,8 @@ export const GeoSpatialProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     return () => {
       if (isTracking) {
         geoSpatialTracker.stopTracking();
-        horizontalLandRegimeManager.unregisterUser(userId);
-        spatialPositioningSystem.unregisterUser(userId);
+        // Note: Our implementation doesn't have explicit unregister methods
+        // We'll handle cleanup differently
       }
     };
   }, [isTracking, userId]);
@@ -87,28 +138,51 @@ export const GeoSpatialProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const startTracking = async () => {
     try {
       setError(null);
-      await geoSpatialTracker.startTracking();
-      setIsTracking(true);
+      const success = await geoSpatialTracker.startTracking();
       
-      // Get initial GID
-      const initialGID = geoSpatialTracker.getCurrentGID();
-      if (initialGID) {
-        setCurrentGID(initialGID);
+      if (success) {
+        setIsTracking(true);
         
-        // Register with regime system
-        const regime = horizontalLandRegimeManager.registerUserWithRegime(userId, initialGID);
-        setCurrentRegime(regime);
+        // Get initial GID
+        const initialGID = geoSpatialTracker.getCurrentGID();
+        if (initialGID) {
+          setCurrentGID(initialGID);
+          
+          // Register with regime system
+          const regime = horizontalLandRegimeManager.registerUserWithRegime(userId, initialGID);
+          setCurrentRegime(regime);
+          
+          // Register with positioning system
+          const context = await spatialPositioningSystem.registerUser(userId, initialGID);
+          if (context) {
+            setSpatialContext(context);
+            
+            // Update nearby users
+            const nearby = spatialPositioningSystem.getNearbyUsers(userId);
+            setNearbyUsers(nearby);
+            
+            // Create initial history entry
+            const historyEntry: GeoHistoryEntry = {
+              timestamp: Date.now(),
+              gid: initialGID,
+              regime,
+              nearbyUserCount: nearby.length
+            };
+            
+            // Update time-series store
+            timeSeriesStore.updateState(prev => ({
+              ...prev,
+              geoHistory: [...prev.geoHistory, historyEntry],
+              currentGID: initialGID,
+              currentRegime: regime
+            }));
+          }
+        }
         
-        // Register with positioning system
-        const context = await spatialPositioningSystem.registerUser(userId, initialGID);
-        setSpatialContext(context);
-        
-        // Update nearby users
-        const nearby = context.neighbors.map(neighbor => 
-          spatialPositioningSystem.getUserContext(neighbor.userId)
-        ).filter(user => user !== undefined) as UserSpatialContext[];
-        
-        setNearbyUsers(nearby);
+        // Apply evolution state to adapt behavior
+        applyEvolutionState();
+      } else {
+        throw new Error("Failed to start location tracking");
       }
     } catch (err) {
       setError(err as Error);
@@ -116,18 +190,38 @@ export const GeoSpatialProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     }
   };
   
+  // Apply evolution state to adapt behavior
+  const applyEvolutionState = () => {
+    // Adaptive behavior based on evolution state
+    if (evolutionState.state.precision === 'high') {
+      // Enable high-precision tracking if evolution state suggests it
+      spatialPositioningSystem.registerForOrientation(userId);
+    }
+  };
+  
   // Function to stop location tracking
   const stopTracking = () => {
     geoSpatialTracker.stopTracking();
-    horizontalLandRegimeManager.unregisterUser(userId);
-    spatialPositioningSystem.unregisterUser(userId);
     setIsTracking(false);
   };
   
-  // Function to set precision
-  const setPrecision = (newPrecision: number) => {
-    setPrecisionState(newPrecision);
-    geoSpatialTracker.setPrecision(newPrecision);
+  // Create a named snapshot of the current state
+  const createSnapshot = (name: string) => {
+    timeSeriesStore.createSnapshot(name);
+  };
+  
+  // Load a named snapshot
+  const loadSnapshot = (name: string): boolean => {
+    const success = timeSeriesStore.loadSnapshot(name);
+    
+    if (success) {
+      // Update local state from time-series store
+      const state = timeSeriesStore.getState();
+      setCurrentGID(state.currentGID);
+      setCurrentRegime(state.currentRegime);
+    }
+    
+    return success;
   };
   
   // Context value
@@ -137,11 +231,12 @@ export const GeoSpatialProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     currentRegime,
     spatialContext,
     nearbyUsers,
-    precision,
     error,
     startTracking,
     stopTracking,
-    setPrecision
+    createSnapshot,
+    loadSnapshot,
+    trackingHistory: timeSeriesStore.getState().geoHistory
   };
   
   return (

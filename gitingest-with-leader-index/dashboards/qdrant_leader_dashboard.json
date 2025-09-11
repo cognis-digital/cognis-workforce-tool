@@ -1,0 +1,22 @@
+{
+  "dashboard": {
+    "uid": "qdrant-leader-uid",
+    "title": "Qdrant Leader & Nodes",
+    "panels": [
+      {
+        "type": "stat",
+        "title": "Leader Index",
+        "targets": [{ "expr": "qdrant_leader_index", "refId": "A" }],
+        "gridPos": { "h": 4, "w": 6, "x": 0, "y": 0 }
+      },
+      {
+        "type": "graph",
+        "title": "Leader Node Flags",
+        "targets": [{ "expr": "qdrant_leader_node", "refId": "B" }],
+        "gridPos": { "h": 8, "w": 12, "x": 0, "y": 4 }
+      }
+    ],
+    "schemaVersion": 30,
+    "version": 1
+  }
+}

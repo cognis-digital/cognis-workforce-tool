@@ -47,63 +47,84 @@ export default function NotificationsPanel() {
     fetchNotifications();
   }, [currentPage, filter, searchQuery]);
   
+  // Generate mock notification data with appropriate types
+  const generateMockNotificationData = (): NotificationRecord[] => {
+    const types: NotificationType[] = [
+      'subscription_expiring_soon',
+      'payment_successful',
+      'feature_access_denied',
+      'usage_limit_approaching'
+    ];
+    
+    const channels: Array<'email' | 'in_app' | 'push'> = ['email', 'in_app', 'push'];
+    const statuses: Array<'sent' | 'pending' | 'failed'> = ['sent', 'pending', 'failed'];
+    
+    // Generate 50 mock notifications
+    return Array(50).fill(0).map((_, i) => {
+      const type = types[Math.floor(Math.random() * types.length)];
+      const channel = channels[Math.floor(Math.random() * channels.length)];
+      const status = statuses[Math.floor(Math.random() * statuses.length)];
+      const date = new Date();
+      date.setHours(date.getHours() - Math.floor(Math.random() * 72)); // Random time in last 72 hours
+      
+      return {
+        id: `notification-${i}`,
+        user_id: `user-${Math.floor(Math.random() * 10) + 1}`,
+        type,
+        title: `${type.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}`,
+        message: `This is a mock ${type} notification for testing purposes`,
+        channel,
+        status,
+        created_at: date.toISOString(),
+        data: { mockData: true },
+        user_name: `User ${Math.floor(Math.random() * 10) + 1}`,
+        user_email: `user${Math.floor(Math.random() * 10) + 1}@example.com`
+      };
+    });
+  };
+
+  // All mock data
+  const allMockNotifications = React.useMemo(() => generateMockNotificationData(), []);
+  
   const fetchNotifications = async () => {
     setLoading(true);
     try {
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
       // Calculate pagination
       const from = (currentPage - 1) * pageSize;
-      const to = from + pageSize - 1;
+      const to = from + pageSize;
       
-      // Build query
-      let query = database
-        .from('notifications')
-        .select(`
-          id, 
-          user_id, 
-          type, 
-          title, 
-          message, 
-          channel,
-          status,
-          created_at,
-          data,
-          users:user_profiles(display_name, email)
-        `, { count: 'exact' })
-        .order('created_at', { ascending: false })
-        .range(from, to);
+      // Filter the mock data based on criteria
+      let filteredData = [...allMockNotifications];
       
-      // Apply channel filter
+      // Apply channel filter if not 'all'
       if (filter !== 'all') {
-        query = query.eq('channel', filter);
+        filteredData = filteredData.filter(item => item.channel === filter);
       }
       
       // Apply search if provided
       if (searchQuery) {
-        query = query.or(`title.ilike.%${searchQuery}%,message.ilike.%${searchQuery}%`);
+        const query = searchQuery.toLowerCase();
+        filteredData = filteredData.filter(item => 
+          item.title.toLowerCase().includes(query) || 
+          item.message.toLowerCase().includes(query) ||
+          item.user_name?.toLowerCase().includes(query) ||
+          item.user_email?.toLowerCase().includes(query)
+        );
       }
       
-      const { data, error, count } = await query;
+      // Sort by created_at descending
+      filteredData.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
       
-      if (error) throw error;
+      // Apply pagination
+      const paginatedData = filteredData.slice(from, to);
+      const count = filteredData.length;
       
-      if (data && count !== null) {
-        const formattedData = data.map(item => ({
-          id: item.id,
-          user_id: item.user_id,
-          type: item.type as NotificationType,
-          title: item.title,
-          message: item.message,
-          channel: item.channel as 'email' | 'in_app' | 'push',
-          status: item.status as 'sent' | 'pending' | 'failed',
-          created_at: item.created_at,
-          data: item.data,
-          user_name: item.users?.display_name,
-          user_email: item.users?.email
-        }));
-        
-        setNotifications(formattedData);
-        setTotalPages(Math.ceil(count / pageSize));
-      }
+      // Set state with paginated data
+      setNotifications(paginatedData);
+      setTotalPages(Math.ceil(count / pageSize));
     } catch (error) {
       console.error('Error fetching notifications:', error);
       addNotification({
@@ -192,17 +213,18 @@ export default function NotificationsPanel() {
     
     try {
       // This would normally call a server function to send to multiple users
-      // Simulated here for demo purposes
+      // For demo purposes, we'll mock the users data
       
-      // Get target users
-      const { data: users, error } = await database
-        .from('user_profiles')
-        .select('user_id, display_name, email')
-        .neq('user_id', 'system');
-        
-      if (error) throw error;
+      // Mock user data
+      const users = [
+        { user_id: 'user-1', display_name: 'John Doe', email: 'john.doe@example.com' },
+        { user_id: 'user-2', display_name: 'Jane Smith', email: 'jane.smith@example.com' },
+        { user_id: 'user-3', display_name: 'Alex Johnson', email: 'alex@example.com' },
+        { user_id: 'user-4', display_name: 'Taylor Wilson', email: 'taylor@example.com' },
+        { user_id: 'user-5', display_name: 'Jordan Lee', email: 'jordan@example.com' }
+      ];
       
-      if (!users || users.length === 0) {
+      if (users.length === 0) {
         throw new Error('No users found to send notification');
       }
       

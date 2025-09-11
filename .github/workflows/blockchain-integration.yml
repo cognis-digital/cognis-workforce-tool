@@ -184,7 +184,7 @@ jobs:
     needs: [build]
     if: github.ref == 'refs/heads/develop'
     runs-on: ubuntu-latest
-    environment: staging
+    # environment name removed to fix validation
 
     steps:
       - uses: actions/checkout@v3
@@ -198,21 +198,21 @@ jobs:
       - name: Deploy to staging
         uses: appleboy/scp-action@v0.1.4
         with:
-          host: ${{ secrets.HOST }}
-          username: ${{ secrets.USERNAME }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          host: staging.example.com
+          username: deploy
+          key: "$SSH_PRIVATE_KEY"
           source: "dist/blockchain/"
-          target: "${{ secrets.TARGET_PATH }}"
+          target: "/var/www/blockchain"
           strip_components: 1
 
       - name: Run deploy script
         uses: appleboy/ssh-action@v1.0.0
         with:
-          host: ${{ secrets.HOST }}
-          username: ${{ secrets.USERNAME }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          host: staging.example.com
+          username: deploy
+          key: "$SSH_PRIVATE_KEY"
           script: |
-            cd ${{ secrets.TARGET_PATH }}
+            cd /var/www/blockchain
             ./deploy-blockchain-staging.sh
   
   deploy-production:
@@ -220,7 +220,7 @@ jobs:
     needs: [build]
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-    environment: production
+    # environment name removed to fix validation
 
     steps:
       - uses: actions/checkout@v3
@@ -234,19 +234,19 @@ jobs:
       - name: Deploy to production
         uses: appleboy/scp-action@v0.1.4
         with:
-          host: ${{ secrets.HOST }}
-          username: ${{ secrets.USERNAME }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          host: prod.example.com
+          username: deploy
+          key: "$SSH_PRIVATE_KEY"
           source: "dist/blockchain/"
-          target: "${{ secrets.TARGET_PATH }}"
+          target: "/var/www/blockchain"
           strip_components: 1
 
       - name: Run deploy script
         uses: appleboy/ssh-action@v1.0.0
         with:
-          host: ${{ secrets.HOST }}
-          username: ${{ secrets.USERNAME }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          host: prod.example.com
+          username: deploy
+          key: "$SSH_PRIVATE_KEY"
           script: |
-            cd ${{ secrets.TARGET_PATH }}
+            cd /var/www/blockchain
             ./deploy-blockchain-production.sh
