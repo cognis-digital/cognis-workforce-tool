@@ -1,0 +1,111 @@
+name: Production Deployment
+
+on:
+  push:
+    branches: [ production ]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+          - production
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+      
+      - name: Copy production environment file
+        run: cp .env.production .env
+      
+      - name: Build
+        run: npm run build
+      
+      # Fix any known issues in the build
+      - name: Apply production fixes
+        run: |
+          cp component-fix.js dist/
+          cp react-hook-injector.js dist/
+          cp react-polyfill.js dist/
+          cp env-config.js dist/
+          cp default-api-key.js dist/
+          cp -r public/* dist/ 2>/dev/null || true
+          cp -r api dist/ 2>/dev/null || true
+          
+          # Add necessary files for production
+          touch dist/.nojekyll
+          
+          # Fix "Crown is not defined" and other issues
+          echo "// Fix for crypto.randomUUID" > dist/polyfill.js
+          echo "if (typeof window !== 'undefined' && window.crypto) {" >> dist/polyfill.js
+          echo "  if (typeof window.crypto.randomUUID !== 'function') {" >> dist/polyfill.js
+          echo "    window.crypto.randomUUID = function() {" >> dist/polyfill.js
+          echo "      return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {" >> dist/polyfill.js
+          echo "        const r = Math.random() * 16 | 0;" >> dist/polyfill.js
+          echo "        const v = c === 'x' ? r : (r & 0x3 | 0x8);" >> dist/polyfill.js
+          echo "        return v.toString(16);" >> dist/polyfill.js
+          echo "      });" >> dist/polyfill.js
+          echo "    };" >> dist/polyfill.js
+          echo "  }" >> dist/polyfill.js
+          echo "}" >> dist/polyfill.js
+          echo "" >> dist/polyfill.js
+          echo "// Runtime error handling" >> dist/polyfill.js
+          echo "window.addEventListener('error', function(event) {" >> dist/polyfill.js
+          echo "  if (event && event.error && event.error.message && " >> dist/polyfill.js
+          echo "      (event.error.message.includes('message channel closed') || " >> dist/polyfill.js
+          echo "        event.error.message.includes('runtime.lastError'))) {" >> dist/polyfill.js
+          echo "    event.preventDefault();" >> dist/polyfill.js
+          echo "    return true;" >> dist/polyfill.js
+          echo "  }" >> dist/polyfill.js
+          echo "}, true);" >> dist/polyfill.js
+          
+          # Update index.html to include polyfill
+          sed -i -e '</head>/i\    <script src="polyfill.js"></script>' dist/index.html || true
+      
+      - name: Create production package
+        run: |
+          cd dist
+          tar -czvf ../cognis-workforce-production.tar.gz .
+      
+      # Option 1: Deploy to GitHub Pages
+      - name: Deploy to GitHub Pages
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          folder: dist
+          branch: gh-pages
+          
+      # Option 2: Create deployment artifact for download
+      - name: Upload production package
+        uses: actions/upload-artifact@v3
+        with:
+          name: production-build
+          path: cognis-workforce-production.tar.gz
+          
+      # Option 3: Upload to release (for version tagging)
+      - name: Create Release and Upload Asset
+        if: github.ref == 'refs/heads/production' && github.event_name != 'workflow_dispatch'
+        uses: softprops/action-gh-release@v1
+        with:
+          files: cognis-workforce-production.tar.gz
+          name: Production Release ${{ github.run_number }}
+          tag_name: production-${{ github.run_number }}
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
