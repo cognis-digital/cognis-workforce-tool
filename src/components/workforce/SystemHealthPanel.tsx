@@ -3,6 +3,7 @@
  * Displays health metrics and statistics for the Cognis Workforce system
  */
 import React, { useState, useEffect } from 'react';
+import { Row, Col, Typography } from 'antd';
 const Card = ({ children, className = '', loading = false, title = null }) => (
   <div className={`p-4 border rounded-lg bg-white shadow-sm ${className} ${loading ? 'opacity-60' : ''}`}>
     {title && <h2 className="text-lg font-semibold mb-2">{title}</h2>}
@@ -70,16 +71,6 @@ const CloseCircleOutlined = () => <span className="text-red-600">✗</span>;
 const ReloadOutlined = () => <span>🔄</span>;
 const RocketOutlined = () => <span>🚀</span>;
 const FileTextOutlined = () => <span>📄</span>;
-
-const { Title, Text } = {
-  Title: ({ level = 4, className = '', children }) => {
-    const Tag = `h${level}`;
-    return <Tag className={`font-semibold ${className}`}>{children}</Tag>;
-  },
-  Text: ({ strong = false, type = 'default', className = '', children }) => {
-    return <span className={`${strong ? 'font-semibold' : ''} ${type === 'secondary' ? 'text-gray-500' : ''} ${className}`}>{children}</span>;
-  }
-};
 
 const { Title, Text } = Typography;
 
@@ -246,7 +237,7 @@ const SystemHealthPanel: React.FC = () => {
         )}
 
         <div className="grid grid-cols-3 gap-4 mb-4">
-          <Col span={8}>
+<div>
             <Card>
               <Statistic 
                 title="Tasks Created" 
@@ -254,8 +245,8 @@ const SystemHealthPanel: React.FC = () => {
                 prefix={<RocketOutlined />} 
               />
             </Card>
-          </div>
-          <Col span={8}>
+</div>
+<div>
             <Card>
               <Statistic 
                 title="Tasks Completed" 
@@ -264,8 +255,8 @@ const SystemHealthPanel: React.FC = () => {
                 valueStyle={{ color: '#3f8600' }}
               />
             </Card>
-          </div>
-          <Col span={8}>
+</div>
+<div>
             <Card>
               <Statistic 
                 title="Content Generated" 
@@ -282,9 +273,36 @@ const SystemHealthPanel: React.FC = () => {
           <div className="flex-grow h-px bg-gray-200"></div>
         </div>
         
-        <Row gutter={16}>
-          <Col span={8}>
-            <div className="text-center">
+<Row gutter={16}>
+          <Col span={8} className="text-center">
+            <Text strong>Task Completion</Text>
+            <Progress 
+              type="circle" 
+              percent={taskSuccessRate} 
+              format={percent => `${percent}%`}
+              status={taskSuccessRate > 80 ? 'success' : taskSuccessRate > 50 ? 'normal' : 'exception'}
+            />
+          </Col>
+          <Col span={8} className="text-center">
+            <Text strong>Validation Success</Text>
+            <Progress 
+              type="circle" 
+              percent={validationSuccessRate} 
+              format={percent => `${percent}%`}
+              status={validationSuccessRate > 80 ? 'success' : validationSuccessRate > 50 ? 'normal' : 'exception'}
+            />
+          </Col>
+          <Col span={8} className="text-center">
+            <Text strong>Fix Success</Text>
+            <Progress 
+              type="circle" 
+              percent={fixSuccessRate} 
+              format={percent => `${percent}%`}
+              status={fixSuccessRate > 80 ? 'success' : fixSuccessRate > 50 ? 'normal' : 'exception'}
+            />
+          </Col>
+        </Row>
+<Col span={8} className="text-center">
               <Text strong>Task Completion</Text>
               <Progress 
                 type="circle" 
@@ -292,10 +310,8 @@ const SystemHealthPanel: React.FC = () => {
                 format={percent => `${percent}%`}
                 status={taskSuccessRate > 80 ? 'success' : taskSuccessRate > 50 ? 'normal' : 'exception'}
               />
-            </div>
-          </div>
-          <Col span={8}>
-            <div className="text-center">
+</Col>
+<Col span={8} className="text-center">
               <Text strong>Validation Success</Text>
               <Progress 
                 type="circle" 
@@ -303,10 +319,9 @@ const SystemHealthPanel: React.FC = () => {
                 format={percent => `${percent}%`}
                 status={validationSuccessRate > 80 ? 'success' : validationSuccessRate > 50 ? 'normal' : 'exception'}
               />
-            </div>
+</Col>
           </div>
-          <Col span={8}>
-            <div className="text-center">
+<Col span={8} className="text-center">
               <Text strong>Fix Success</Text>
               <Progress 
                 type="circle" 
@@ -314,9 +329,7 @@ const SystemHealthPanel: React.FC = () => {
                 format={percent => `${percent}%`}
                 status={fixSuccessRate > 80 ? 'success' : fixSuccessRate > 50 ? 'normal' : 'exception'}
               />
-            </div>
-          </div>
-        </div>
+</Col>
 
         <div className="flex items-center my-4">
           <div className="flex-grow h-px bg-gray-200"></div>
@@ -327,43 +340,43 @@ const SystemHealthPanel: React.FC = () => {
         <div className="grid grid-cols-4 gap-4">
           <Col span={6}>
             <Statistic title="Subtasks Completed" value={healthData.metrics.subtask_completed || 0} />
-          </div>
+</Col>
           <Col span={6}>
             <Statistic title="Content Validated" value={healthData.metrics.content_validated || 0} />
-          </div>
+</Col>
           <Col span={6}>
             <Statistic title="PRs Created" value={healthData.metrics.pr_created || 0} />
-          </div>
+</Col>
           <Col span={6}>
             <Statistic title="PRs Merged" value={healthData.metrics.pr_merged || 0} />
-          </div>
+</Col>
           <Col span={6}>
             <Statistic 
               title="Validation Passed" 
               value={healthData.metrics.validation_passed || 0}
               valueStyle={{ color: '#3f8600' }}
             />
-          </div>
+</Col>
           <Col span={6}>
             <Statistic 
               title="Validation Failed" 
               value={healthData.metrics.validation_failed || 0} 
               valueStyle={{ color: '#cf1322' }}
             />
-          </div>
+</Col>
           <Col span={6}>
             <Statistic 
               title="Content Fixed" 
               value={healthData.metrics.content_fixed || 0}
             />
-          </div>
+</Col>
           <Col span={6}>
             <Statistic 
               title="Tasks Failed" 
               value={healthData.metrics.task_failed || 0}
               valueStyle={{ color: '#cf1322' }}
             />
-          </div>
+</Col>
         </div>
       </Card>
 
@@ -376,22 +389,22 @@ const SystemHealthPanel: React.FC = () => {
                 value={(healthData.metrics.avg_completion_time_ms / 1000).toFixed(2)} 
                 suffix="sec" 
               />
-            </div>
+</Col>
             <Col span={8}>
               <Statistic 
                 title="Avg Validation Time" 
                 value={(healthData.metrics.avg_validation_time_ms / 1000).toFixed(2)} 
                 suffix="sec" 
               />
-            </div>
+</Col>
             <Col span={8}>
               <Statistic 
                 title="Avg Fix Time" 
                 value={(healthData.metrics.avg_fix_time_ms / 1000).toFixed(2)} 
                 suffix="sec" 
               />
-            </div>
-          </div>
+</Col>
+</Row>
         </Card>
       )}
     </div>

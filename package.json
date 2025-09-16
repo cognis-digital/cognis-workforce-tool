@@ -30,6 +30,7 @@
     "cognis:api:dev": "npx nodemon --watch start-cognis-api.js --exec \"node start-cognis-api.js\""
   },
   "dependencies": {
+    "@ant-design/icons": "^6.0.2",
     "@chakra-ui/icons": "^2.2.4",
     "@rainbow-me/rainbowkit": "^2.1.0",
     "@supabase/supabase-js": "^2.56.0",
@@ -37,6 +38,7 @@
     "@wagmi/connectors": "^5.9.9",
     "@wagmi/core": "^2.13.0",
     "@xenova/transformers": "^2.17.2",
+    "antd": "^5.27.3",
     "chart.js": "^4.5.0",
     "cors": "^2.8.5",
     "crypto-js": "^4.2.0",
