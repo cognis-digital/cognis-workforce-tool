@@ -1,0 +1,95 @@
+name: Deliverable Validation
+
+on:
+  pull_request:
+    paths:
+      - "docs/**"
+      - "deliverables/**"
+  workflow_dispatch:
+    inputs:
+      path:
+        description: 'Path to validate'
+        required: true
+        default: 'docs'
+        type: string
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: |
+          npm ci
+          npm install -g markdownlint-cli
+          npm install -g @pandoc/core
+          sudo apt-get update && sudo apt-get install -y wkhtmltopdf
+
+      - name: Run markdown lint
+        run: |
+          echo "Running markdown lint on content files..."
+          markdownlint docs/**/*.md || true
+          markdownlint deliverables/**/*.md || true
+
+      - name: Run structural checks
+        run: |
+          echo "Running structural validation checks..."
+          node ./server/agents/workforce/validation/check-structure.js
+
+      - name: Run compliance scan
+        if: success() || failure()
+        run: |
+          echo "Running compliance validation..."
+          node ./server/agents/workforce/validation/check-compliance.js
+
+      - name: Generate derivative formats
+        if: success() || failure()
+        run: |
+          echo "Generating derivative formats (PDF, DOCX)..."
+          
+          # Find all markdown files
+          find docs deliverables -name "*.md" -type f | while read -r file; do
+            dir=$(dirname "$file")
+            filename=$(basename "$file" .md)
+            
+            # Generate PDF
+            echo "Converting $file to PDF"
+            wkhtmltopdf "$file" "$dir/$filename.pdf" || true
+            
+            # Generate DOCX
+            echo "Converting $file to DOCX"
+            npx pandoc "$file" -o "$dir/$filename.docx" || true
+          done
+
+      - name: Run security scan
+        if: success() || failure()
+        run: |
+          echo "Running security scan for sensitive information..."
+          node ./server/agents/workforce/validation/security-scan.js
+
+      - name: Upload validation results
+        uses: actions/upload-artifact@v3
+        with:
+          name: validation-results
+          path: |
+            validation-results.json
+            **/*.pdf
+            **/*.docx
+
+      - name: Check validation status
+        run: |
+          if [ -f validation-errors.txt ]; then
+            echo "::error::Validation errors found. See artifact for details."
+            cat validation-errors.txt
+            exit 1
+          else
+            echo "All validations passed successfully!"
+          fi

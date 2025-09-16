@@ -17,6 +17,8 @@ import SubscriptionAnalytics from './pages/SubscriptionAnalytics';
 import UsageDashboard from './pages/UsageDashboard';
 import SubscriptionManagement from './pages/SubscriptionManagement';
 import AdminSubscriptionDashboard from './pages/AdminSubscriptionDashboard';
+// Import Workforce components
+import { TaskDashboard as WorkforceTaskDashboard } from './components/workforce';
 import ProtectedRoute from './components/ProtectedRoute';
 import Layout from './components/Layout';
 import ArchitecturalLayout from './components/ArchitecturalLayout';
@@ -85,6 +87,7 @@ class AppContent extends React.Component {
             <Route path="subscription" element={<SubscriptionManagement />} />
             <Route path="admin-subscription" element={<AdminSubscriptionDashboard />} />
             <Route path="settings" element={<Settings />} />
+            <Route path="workforce" element={<WorkforceTaskDashboard />} />
           </Route>
         </Routes>
         <Toaster />
