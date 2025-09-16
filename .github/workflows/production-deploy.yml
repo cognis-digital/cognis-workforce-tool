@@ -25,7 +25,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '18'
+          node-version: '20.19'
           cache: 'npm'
       
       - name: Install dependencies
@@ -36,8 +36,12 @@ jobs:
       
       - name: Build
         run: npm run build
+        env:
+          MODEL_STORAGE_PATH: '/models'
+          NODE_OPTIONS: '--max-old-space-size=4096'
+          NODE_ENV: 'production'
       
-      # Fix any known issues in the build
+      # Fix any known issues in the build and include WASM support
       - name: Apply production fixes
         run: |
           cp component-fix.js dist/
@@ -50,6 +54,12 @@ jobs:
           
           # Add necessary files for production
           touch dist/.nojekyll
+          
+          # Create WASM model directory structure
+          mkdir -p dist/models/transformers
+          
+          # Copy model configs
+          cp -r public/models/transformers/* dist/models/transformers/ 2>/dev/null || true
           
           # Fix "Crown is not defined" and other issues
           echo "// Fix for crypto.randomUUID" > dist/polyfill.js

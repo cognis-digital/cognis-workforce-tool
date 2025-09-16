@@ -3,7 +3,7 @@
  * Displays health metrics and statistics for the Cognis Workforce system
  */
 import React, { useState, useEffect } from 'react';
-import { Row, Col, Typography } from 'antd';
+import { Row, Col, Typography, Progress as AntdProgress, Statistic as AntdStatistic } from 'antd';
 const Card = ({ children, className = '', loading = false, title = null }) => (
   <div className={`p-4 border rounded-lg bg-white shadow-sm ${className} ${loading ? 'opacity-60' : ''}`}>
     {title && <h2 className="text-lg font-semibold mb-2">{title}</h2>}
@@ -29,7 +29,8 @@ const Alert = ({ message, description, type, showIcon, action }) => (
   </div>
 );
 
-const Statistic = ({ title, value, prefix = null, valueStyle = {} }) => (
+// Custom statistic component for styling
+const CustomStatistic = ({ title, value, prefix = null, valueStyle = {} }) => (
   <div className="flex flex-col items-center">
     <div className="text-sm text-gray-500">{title}</div>
     <div className="flex items-center gap-1" style={valueStyle}>
@@ -73,6 +74,7 @@ const RocketOutlined = () => <span>🚀</span>;
 const FileTextOutlined = () => <span>📄</span>;
 
 const { Title, Text } = Typography;
+// Use the Ant Design Statistic component directly
 
 interface HealthData {
   status: 'healthy' | 'degraded' | 'unhealthy';
@@ -236,36 +238,36 @@ const SystemHealthPanel: React.FC = () => {
           />
         )}
 
-        <div className="grid grid-cols-3 gap-4 mb-4">
-<div>
+        <Row gutter={16} className="mb-4">
+          <Col span={8}>
             <Card>
-              <Statistic 
+              <AntdStatistic 
                 title="Tasks Created" 
                 value={healthData.metrics.task_created} 
                 prefix={<RocketOutlined />} 
               />
             </Card>
-</div>
-<div>
+          </Col>
+          <Col span={8}>
             <Card>
-              <Statistic 
+              <AntdStatistic 
                 title="Tasks Completed" 
                 value={healthData.metrics.task_completed} 
                 prefix={<CheckCircleOutlined />} 
                 valueStyle={{ color: '#3f8600' }}
               />
             </Card>
-</div>
-<div>
+          </Col>
+          <Col span={8}>
             <Card>
-              <Statistic 
+              <AntdStatistic 
                 title="Content Generated" 
                 value={healthData.metrics.content_generated || 0} 
                 prefix={<FileTextOutlined />} 
               />
             </Card>
-          </div>
-        </div>
+          </Col>
+        </Row>
 
         <div className="flex items-center my-4">
           <div className="flex-grow h-px bg-gray-200"></div>
@@ -276,60 +278,32 @@ const SystemHealthPanel: React.FC = () => {
 <Row gutter={16}>
           <Col span={8} className="text-center">
             <Text strong>Task Completion</Text>
-            <Progress 
+            <AntdProgress 
               type="circle" 
               percent={taskSuccessRate} 
-              format={percent => `${percent}%`}
+              format={(percent) => `${percent}%`}
               status={taskSuccessRate > 80 ? 'success' : taskSuccessRate > 50 ? 'normal' : 'exception'}
             />
           </Col>
           <Col span={8} className="text-center">
             <Text strong>Validation Success</Text>
-            <Progress 
+            <AntdProgress 
               type="circle" 
               percent={validationSuccessRate} 
-              format={percent => `${percent}%`}
+              format={(percent) => `${percent}%`}
               status={validationSuccessRate > 80 ? 'success' : validationSuccessRate > 50 ? 'normal' : 'exception'}
             />
           </Col>
           <Col span={8} className="text-center">
             <Text strong>Fix Success</Text>
-            <Progress 
+            <AntdProgress 
               type="circle" 
               percent={fixSuccessRate} 
-              format={percent => `${percent}%`}
+              format={(percent) => `${percent}%`}
               status={fixSuccessRate > 80 ? 'success' : fixSuccessRate > 50 ? 'normal' : 'exception'}
             />
           </Col>
         </Row>
-<Col span={8} className="text-center">
-              <Text strong>Task Completion</Text>
-              <Progress 
-                type="circle" 
-                percent={taskSuccessRate} 
-                format={percent => `${percent}%`}
-                status={taskSuccessRate > 80 ? 'success' : taskSuccessRate > 50 ? 'normal' : 'exception'}
-              />
-</Col>
-<Col span={8} className="text-center">
-              <Text strong>Validation Success</Text>
-              <Progress 
-                type="circle" 
-                percent={validationSuccessRate} 
-                format={percent => `${percent}%`}
-                status={validationSuccessRate > 80 ? 'success' : validationSuccessRate > 50 ? 'normal' : 'exception'}
-              />
-</Col>
-          </div>
-<Col span={8} className="text-center">
-              <Text strong>Fix Success</Text>
-              <Progress 
-                type="circle" 
-                percent={fixSuccessRate} 
-                format={percent => `${percent}%`}
-                status={fixSuccessRate > 80 ? 'success' : fixSuccessRate > 50 ? 'normal' : 'exception'}
-              />
-</Col>
 
         <div className="flex items-center my-4">
           <div className="flex-grow h-px bg-gray-200"></div>
@@ -337,68 +311,68 @@ const SystemHealthPanel: React.FC = () => {
           <div className="flex-grow h-px bg-gray-200"></div>
         </div>
 
-        <div className="grid grid-cols-4 gap-4">
+        <Row gutter={16}>
           <Col span={6}>
-            <Statistic title="Subtasks Completed" value={healthData.metrics.subtask_completed || 0} />
-</Col>
+            <AntdStatistic title="Subtasks Completed" value={healthData.metrics.subtask_completed || 0} />
+          </Col>
           <Col span={6}>
-            <Statistic title="Content Validated" value={healthData.metrics.content_validated || 0} />
-</Col>
+            <AntdStatistic title="Content Validated" value={healthData.metrics.content_validated || 0} />
+          </Col>
           <Col span={6}>
-            <Statistic title="PRs Created" value={healthData.metrics.pr_created || 0} />
-</Col>
+            <AntdStatistic title="PRs Created" value={healthData.metrics.pr_created || 0} />
+          </Col>
           <Col span={6}>
-            <Statistic title="PRs Merged" value={healthData.metrics.pr_merged || 0} />
-</Col>
+            <AntdStatistic title="PRs Merged" value={healthData.metrics.pr_merged || 0} />
+          </Col>
           <Col span={6}>
-            <Statistic 
+            <AntdStatistic 
               title="Validation Passed" 
               value={healthData.metrics.validation_passed || 0}
               valueStyle={{ color: '#3f8600' }}
             />
-</Col>
+          </Col>
           <Col span={6}>
-            <Statistic 
+            <AntdStatistic 
               title="Validation Failed" 
               value={healthData.metrics.validation_failed || 0} 
               valueStyle={{ color: '#cf1322' }}
             />
-</Col>
+          </Col>
           <Col span={6}>
-            <Statistic 
+            <AntdStatistic 
               title="Content Fixed" 
               value={healthData.metrics.content_fixed || 0}
             />
-</Col>
+          </Col>
           <Col span={6}>
-            <Statistic 
+            <AntdStatistic 
               title="Tasks Failed" 
               value={healthData.metrics.task_failed || 0}
               valueStyle={{ color: '#cf1322' }}
             />
-</Col>
-        </div>
+          </Col>
+        </Row>
       </Card>
 
       {healthData.metrics.avg_completion_time_ms && (
         <Card title="Performance Metrics">
           <Row gutter={16}>
             <Col span={8}>
-              <Statistic 
+              <AntdStatistic 
                 title="Avg Completion Time" 
                 value={(healthData.metrics.avg_completion_time_ms / 1000).toFixed(2)} 
                 suffix="sec" 
               />
 </Col>
             <Col span={8}>
-              <Statistic 
+              <AntdStatistic 
                 title="Avg Validation Time" 
                 value={(healthData.metrics.avg_validation_time_ms / 1000).toFixed(2)} 
                 suffix="sec" 
               />
 </Col>
             <Col span={8}>
-              <Statistic 
+              <AntdStatistic 
                 title="Avg Fix Time" 
                 value={(healthData.metrics.avg_fix_time_ms / 1000).toFixed(2)} 
                 suffix="sec" 

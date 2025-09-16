@@ -3,9 +3,10 @@ import { modelRegistry } from '../models/modelRegistry';
 
 interface Props {
   onRun: (modelRepo: string, message: string, stream: boolean) => void;
+  disabled?: boolean;
 }
 
-export const AgentConsole: React.FC<Props> = ({ onRun }) => {
+export const AgentConsole: React.FC<Props> = ({ onRun, disabled = false }) => {
   const [message, setMessage] = useState('');
   const [modelRepo, setModelRepo] = useState(modelRegistry[0].repo);
   const [stream, setStream] = useState(false);
@@ -37,6 +38,7 @@ export const AgentConsole: React.FC<Props> = ({ onRun }) => {
         placeholder="Type your message..."
         value={message}
         onChange={(e) => setMessage(e.target.value)}
+        disabled={disabled}
       />
 
       <div className="flex items-center justify-between">
@@ -45,13 +47,14 @@ export const AgentConsole: React.FC<Props> = ({ onRun }) => {
             type="checkbox"
             checked={stream}
             onChange={(e) => setStream(e.target.checked)}
+            disabled={disabled}
           />
           Stream response
         </label>
 
         <button
           onClick={handleRun}
-          disabled={isProcessing}
+          disabled={isProcessing || disabled}
           className="bg-gradient-to-r from-blue-500 to-cyan-400 px-4 py-2 rounded-lg text-white disabled:opacity-50"
         >
           {isProcessing ? 'Running...' : 'Run Agent'}
