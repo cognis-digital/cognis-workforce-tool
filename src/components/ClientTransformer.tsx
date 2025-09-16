@@ -22,8 +22,14 @@ import {
   Divider,
   Progress,
   useToast,
+  IconButton,
+  Tooltip,
+  ButtonGroup,
 } from '@chakra-ui/react';
 import { TransformerModel } from '../utils/onnxModel';
+import { ResearchAIConnector, ResearchQueryResult } from '../utils/researchAIConnector';
+import { availableModels, getModelById } from '../config/transformerModels';
+import { SearchIcon, InfoIcon, RepeatIcon } from '@chakra-ui/icons';
 
 interface ModelInfo {
   id: string;
@@ -41,6 +47,7 @@ interface ModelInfo {
 
 const ClientTransformer: React.FC = () => {
   const [modelList, setModelList] = useState<ModelInfo[]>([]);
+  const [researchConnector, setResearchConnector] = useState<ResearchAIConnector | null>(null);
   const [selectedModelId, setSelectedModelId] = useState<string>('');
   const [modelLoading, setModelLoading] = useState<boolean>(false);
   const [modelLoaded, setModelLoaded] = useState<boolean>(false);
@@ -100,42 +107,20 @@ const ClientTransformer: React.FC = () => {
   // Fetch available models
   const fetchAvailableModels = async () => {
     try {
-      // In a real app, this would fetch from an API
-      // For this example, we'll use a mock response
-      const mockModels: ModelInfo[] = [
-        {
-          id: 'transformer-small',
-          name: 'Small Transformer',
-          merkleRoot: '0x1234567890abcdef',
-          description: 'A small transformer model for text generation (6 layers, 512d)',
-          config: {
-            vocabSize: 32000,
-            dModel: 512,
-            nLayers: 6,
-            nHeads: 8,
-            maxLen: 512
-          }
-        },
-        {
-          id: 'transformer-medium',
-          name: 'Medium Transformer',
-          merkleRoot: '0xabcdef1234567890',
-          description: 'A medium-sized transformer model (12 layers, 768d)',
-          config: {
-            vocabSize: 32000,
-            dModel: 768,
-            nLayers: 12,
-            nHeads: 12,
-            maxLen: 512
-          }
-        }
-      ];
+      // Convert the models from config to UI models
+      const configModels = availableModels.map(model => ({
+        id: model.id,
+        name: model.name,
+        merkleRoot: model.merkleRoot,
+        description: model.description,
+        config: model.config
+      }));
       
-      setModelList(mockModels);
+      setModelList(configModels);
       
       // Select the first model by default
-      if (mockModels.length > 0 && !selectedModelId) {
-        setSelectedModelId(mockModels[0].id);
+      if (configModels.length > 0 && !selectedModelId) {
+        setSelectedModelId(configModels[0].id);
       }
     } catch (err) {
       console.error('Error fetching models:', err);
@@ -180,6 +165,11 @@ const ClientTransformer: React.FC = () => {
         throw new Error('Failed to load model');
       }
       
+      // Create a research connector with this model
+      const connector = new ResearchAIConnector();
+      await connector.connectModel(model);
+      setResearchConnector(connector);
+      
       setModelLoaded(true);
       toast({
         title: 'Model loaded',
@@ -199,6 +189,72 @@ const ClientTransformer: React.FC = () => {
   // Handle input text change
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setInputText(e.target.value);
+  };
+
+  // Handle sending query to Cognis Research AI
+  const handleShareWithResearchAI = async () => {
+    if (!researchConnector || !modelLoaded) {
+      setError('Cannot connect to Research AI: Model not loaded');
+      return;
+    }
+    
+    if (!inputText.trim()) {
+      setError('Please enter some text to analyze');
+      return;
+    }
+    
+    try {
+      setProcessing(true);
+      setError(null);
+      
+      // Check if local model can handle it
+      const canHandle = await researchConnector.canHandleResearchQuery(inputText);
+      
+      let result: ResearchQueryResult;
+      if (canHandle) {
+        // Process with local model first
+        result = await researchConnector.processResearchQuery(inputText, {
+          depth: 'comprehensive'
+        });
+        
+        // Then enhance with server-side Research AI
+        result = await researchConnector.enhanceWithResearchAI(result, 'expand');
+      } else {
+        // Request is too complex for local model, send directly to server
+        const response = await fetch('/api/v1/research/query', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            query: inputText,
+            depth: 'comprehensive'
+          })
+        });
+        
+        if (!response.ok) {
+          throw new Error(`Research API error: ${response.statusText}`);
+        }
+        
+        result = await response.json();
+      }
+      
+      setOutputText(result.generatedResponse);
+      
+      toast({
+        title: 'Research analysis complete',
+        description: `Processed in ${result.processingTime}ms`,
+        status: 'success',
+        duration: 3000,
+        isClosable: true,
+      });
+      
+    } catch (err) {
+      console.error('Error with Research AI:', err);
+      setError(`Research AI error: ${err instanceof Error ? err.message : String(err)}`);
+    } finally {
+      setProcessing(false);
+    }
   };
 
   // Handle inference request
@@ -291,16 +347,16 @@ const ClientTransformer: React.FC = () => {
   };
 
   return (
-    <Card variant="outline" width="100%" boxShadow="md" borderRadius="lg">
+    <Card variant="outline" width="100%" boxShadow="md" borderRadius="lg" bg="#0f1425" color="white">
       <CardBody>
         <Stack spacing={4}>
           <Heading size="lg">Client-Side Transformer</Heading>
-          <Text color="gray.600">
+          <Text color="gray.300">
             Run transformer models directly in your browser using ONNX Runtime Web
           </Text>
           
           {/* Device capabilities */}
-          <Box bg="blue.50" p={3} borderRadius="md">
+          <Box bg="#1a2036" p={3} borderRadius="md" borderWidth="1px" borderColor="gray.700">
             <Heading size="xs" mb={2}>Device Capabilities</Heading>
             <Flex wrap="wrap" gap={2}>
               <Badge colorScheme="blue">CPU: {deviceCapabilities.cpuCores} cores</Badge>
@@ -334,7 +390,7 @@ const ClientTransformer: React.FC = () => {
           
           {/* Selected model info */}
           {selectedModelId && (
-            <Box bg="gray.50" p={3} borderRadius="md">
+            <Box bg="#1a2036" p={3} borderRadius="md" borderWidth="1px" borderColor="gray.700">
               {modelLoading ? (
                 <Flex justify="center" align="center" py={4}>
                   <Spinner mr={3} />
@@ -358,7 +414,7 @@ const ClientTransformer: React.FC = () => {
                       <Text fontSize="sm">
                         <Text as="span" fontWeight="bold">Merkle Root:</Text> {model.merkleRoot.substring(0, 10)}...
                       </Text>
-                      <Text fontSize="sm" color={modelLoaded ? 'green.500' : 'orange.500'} fontWeight="bold">
+                      <Text fontSize="sm" color={modelLoaded ? 'green.400' : 'orange.400'} fontWeight="bold">
                         Status: {modelLoaded ? 'Loaded' : 'Not Loaded'}
                       </Text>
                     </Stack>
@@ -408,16 +464,30 @@ const ClientTransformer: React.FC = () => {
             </FormControl>
           )}
           
-          {/* Process button */}
-          <Button
-            colorScheme={trainingMode ? 'purple' : 'blue'}
-            onClick={trainingMode ? handleTrainingStep : handleRunInference}
-            isLoading={processing}
-            isDisabled={!modelLoaded || processing}
-            loadingText={trainingMode ? 'Training' : 'Processing'}
-          >
-            {trainingMode ? 'Run Training Step' : 'Run Inference'}
-          </Button>
+          {/* Process buttons */}
+          <ButtonGroup spacing={3} width="100%">
+            <Button
+              colorScheme={trainingMode ? 'purple' : 'blue'}
+              onClick={trainingMode ? handleTrainingStep : handleRunInference}
+              isLoading={processing}
+              isDisabled={!modelLoaded || processing}
+              loadingText={trainingMode ? 'Training' : 'Processing'}
+              flex={1}
+            >
+              {trainingMode ? 'Run Training Step' : 'Run Inference'}
+            </Button>
+            
+            <Tooltip label="Analyze with Cognis Research AI">
+              <IconButton
+                aria-label="Analyze with Research AI"
+                icon={<SearchIcon />}
+                colorScheme="teal"
+                onClick={handleShareWithResearchAI}
+                isDisabled={!modelLoaded || processing}
+                isLoading={processing}
+              />
+            </Tooltip>
+          </ButtonGroup>
           
           {/* Training progress */}
           {trainingMode && processing && (
@@ -444,8 +514,8 @@ const ClientTransformer: React.FC = () => {
                 p={3}
                 borderWidth={1}
                 borderRadius="md"
-                borderColor="blue.200"
-                bg="blue.50"
+                borderColor="blue.500"
+                bg="#1a2036"
               >
                 <Text whiteSpace="pre-wrap">{outputText}</Text>
               </Box>
@@ -460,8 +530,8 @@ const ClientTransformer: React.FC = () => {
                 p={3}
                 borderWidth={1}
                 borderRadius="md"
-                borderColor="purple.200"
-                bg="purple.50"
+                borderColor="purple.500"
+                bg="#1a2036"
               >
                 <Text><strong>Loss:</strong> {trainingLoss.toFixed(6)}</Text>
                 <Text fontSize="sm" mt={2} color="gray.600">

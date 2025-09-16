@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { WalletProvider } from './contexts/WalletContext';
 import { rbacLoggingService, initializeRBACLoggingSchema, InteractionType } from './services/rbacLogging';
 import Dashboard from './pages/Dashboard';
+import LocalAgents from './pages/LocalAgents';
 import Login from './pages/Login';
 import TaskCenter from './pages/TaskCenter';
 import KnowledgeStack from './pages/KnowledgeStack';
@@ -74,7 +75,8 @@ class AppContent extends React.Component {
               {useArchitecturalDesign ? <ArchitecturalLayout /> : <Layout />}
             </ProtectedRoute>
           }>
-            <Route index element={<Dashboard />} />
+<Route index element={<Dashboard />} />
+<Route path="local-agents" element={<LocalAgents />} />
             <Route path="tasks" element={<TaskCenter />} />
             <Route path="job-roles" element={<JobRoles />} />
             <Route path="knowledge" element={<KnowledgeStack />} />

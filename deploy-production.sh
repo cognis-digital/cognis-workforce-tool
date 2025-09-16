@@ -43,6 +43,49 @@ cp env-config.js dist/web/
 cp default-api-key.js dist/web/
 cp -r api dist/web/
 
+# Process transformer models for browser deployment
+echo "🧠 Processing transformer models for client-side deployment..."
+mkdir -p dist/web/models/transformers
+
+# Function to process a model directory
+process_model() {
+  local model_dir=$1
+  local model_name=$(basename "$model_dir")
+  
+  echo "  - Processing $model_name..."
+  mkdir -p "dist/web/models/transformers/$model_name"
+  
+  # Copy model config and tokenizer
+  cp -r "$model_dir/config.json" "dist/web/models/transformers/$model_name/"
+  cp -r "$model_dir/tokenizer.json" "dist/web/models/transformers/$model_name/"
+  
+  # Check if model file exists (may not exist in dev environment)
+  if [ -f "$model_dir/model.onnx" ]; then
+    echo "    • Found model file, processing chunks..."
+    
+    # Create model chunks directory
+    mkdir -p "dist/web/models/transformers/$model_name/chunks"
+    
+    # Split model into chunks (using Node.js script)
+    node scripts/chunk-model.js "$model_dir/model.onnx" "dist/web/models/transformers/$model_name/chunks"
+    
+    # Create merkle metadata file
+    node scripts/create-merkle-metadata.js "$model_dir/model.onnx" "dist/web/models/transformers/$model_name/merkle_metadata.json"
+  else
+    echo "    • Model file not found, creating placeholder..."
+    echo '{"placeholder": true, "message": "Model file not included in repository due to size limitations"}' > "dist/web/models/transformers/$model_name/model_placeholder.json"
+  fi
+}
+
+# Process each transformer model
+for model_dir in public/models/transformers/*; do
+  if [ -d "$model_dir" ]; then
+    process_model "$model_dir"
+  fi
+done
+
+echo "✅ Transformer models processed successfully"
+
 # Copy environment file for production
 echo "⚙️ Setting up environment configuration..."
 cp .env.production dist/.env

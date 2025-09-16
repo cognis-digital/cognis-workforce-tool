@@ -1,0 +1,20 @@
+{
+  "vocab_size": 16000,
+  "d_model": 256,
+  "n_layers": 4,
+  "n_heads": 4,
+  "max_len": 256,
+  "quantized": true,
+  "format": "onnx",
+  "task_type": "generation",
+  "model_name": "Cognis Tiny Transformer",
+  "merkle_root": "0xc3a456b291def7890abcde12345678901234567890abcdef1234567890abcde",
+  "version": "1.0.0",
+  "description": "Lightweight transformer for text processing (4 layers, 256d)",
+  "metadata": {
+    "size_kb": 5120,
+    "publish_date": "2025-08-01",
+    "supports_training": false,
+    "created_by": "Cognis AI Team"
+  }
+}
