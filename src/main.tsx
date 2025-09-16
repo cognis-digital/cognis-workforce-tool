@@ -1,8 +1,7 @@
-// Import polyfills first to ensure they're applied before any code runs
-import './utils/browser-polyfills.js';
 
 import React, { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
+import './utils/react-hooks-globals';
 import App from './App.tsx';
 import './index.css';
 

@@ -51,7 +51,7 @@ export default defineConfig(({ mode }) => {
       },
       cors: true
     },
-    base: '/',
+    base: '/cognis-workforce-tool/',
     build: {
       outDir: 'dist/web',
       assetsInlineLimit: 0, // ensure .wasm stays as separate file
