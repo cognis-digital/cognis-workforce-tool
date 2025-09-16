@@ -7,6 +7,7 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
   
   return {
+    root: 'web',
     plugins: [react()],
     optimizeDeps: {
       exclude: ['lucide-react'],
@@ -17,10 +18,13 @@ export default defineConfig(({ mode }) => {
     server: {
       port: 5173,
       host: true,
+      proxy: {
+        '/api': 'http://localhost:3000'
+      }
     },
-    base: '/cognis-workforce-tool/',
+    base: '/',
     build: {
-      outDir: 'dist',
+      outDir: 'dist/web',
       sourcemap: true,
     },
   };

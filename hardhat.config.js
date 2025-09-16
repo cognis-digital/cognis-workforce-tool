@@ -1,4 +1,3 @@
-import "@nomicfoundation/hardhat-chai-matchers";
 import "@nomicfoundation/hardhat-ethers";
 import dotenv from "dotenv";
 
@@ -20,6 +19,7 @@ export default {
   networks: {
     // Local development network for webcontainer
     weblocal: {
+      type: "http",
       url: "http://localhost:8545",
       accounts: {
         mnemonic: "test test test test test test test test test test test junk",
@@ -39,6 +39,7 @@ export default {
     },
     // Ethereum Sepolia Testnet
     sepolia: {
+      type: "http",
       url: `https://sepolia.infura.io/v3/${INFURA_PROJECT_ID}`,
       accounts: [PRIVATE_KEY],
       chainId: 11155111,
@@ -47,6 +48,7 @@ export default {
     },
     // Polygon Mumbai Testnet
     mumbai: {
+      type: "http",
       url: `https://polygon-mumbai.infura.io/v3/${INFURA_PROJECT_ID}`,
       accounts: [PRIVATE_KEY],
       chainId: 80001,
@@ -55,6 +57,7 @@ export default {
     },
     // BSC Testnet
     bscTestnet: {
+      type: "http",
       url: "https://data-seed-prebsc-1-s1.binance.org:8545/",
       accounts: [PRIVATE_KEY],
       chainId: 97,
@@ -63,6 +66,7 @@ export default {
     },
     // Avalanche Fuji Testnet
     fuji: {
+      type: "http",
       url: "https://api.avax-test.network/ext/bc/C/rpc",
       accounts: [PRIVATE_KEY],
       chainId: 43113,
@@ -71,6 +75,7 @@ export default {
     },
     // Arbitrum Sepolia Testnet
     arbitrumSepolia: {
+      type: "http",
       url: "https://sepolia-rollup.arbitrum.io/rpc",
       accounts: [PRIVATE_KEY],
       chainId: 421614,

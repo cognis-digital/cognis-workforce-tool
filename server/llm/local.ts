@@ -1,8 +1,8 @@
 import { pipeline, env as xenEnv } from '@xenova/transformers';
 import fs from 'fs';
 import path from 'path';
-import { ENV } from '../util/env.js';
-import type { LLMAdapter, ChatRequest, ChatResponse } from './adapter.js';
+import { ENV } from '../util/env';
+import type { LLMAdapter, ChatRequest, ChatResponse } from './adapter';
 
 // Configure transformers.js environment
 const cacheDir = path.resolve(ENV.MODEL_CACHE_DIR);
