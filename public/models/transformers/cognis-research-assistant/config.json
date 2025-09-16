@@ -1,0 +1,20 @@
+{
+  "vocab_size": 32000,
+  "d_model": 768,
+  "n_layers": 12,
+  "n_heads": 12,
+  "max_len": 512,
+  "quantized": true,
+  "format": "onnx",
+  "task_type": "generation",
+  "model_name": "Cognis Research Assistant",
+  "merkle_root": "0xd4b67890abcde12345678901234567890abcdef1234567890abcde12345678",
+  "version": "1.0.0",
+  "description": "Research assistant model for enhanced search and information retrieval (12 layers, 768d)",
+  "metadata": {
+    "size_kb": 1024000,
+    "publish_date": "2025-09-16",
+    "supports_training": false,
+    "created_by": "Cognis AI Team"
+  }
+}

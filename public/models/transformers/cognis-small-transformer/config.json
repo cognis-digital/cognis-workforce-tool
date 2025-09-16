@@ -1,0 +1,20 @@
+{
+  "vocab_size": 24000,
+  "d_model": 512,
+  "n_layers": 8,
+  "n_heads": 8,
+  "max_len": 384,
+  "quantized": true,
+  "format": "onnx",
+  "task_type": "generation",
+  "model_name": "Cognis Small Transformer",
+  "merkle_root": "0xe5a456b291def7890abcde12345678901234567890abcdef1234567890abcde",
+  "version": "1.0.0",
+  "description": "Balanced transformer for general text tasks (8 layers, 512d)",
+  "metadata": {
+    "size_kb": 15360,
+    "publish_date": "2025-09-16",
+    "supports_training": false,
+    "created_by": "Cognis AI Team"
+  }
+}
