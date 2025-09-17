@@ -11,9 +11,17 @@ describe('PolymorphicCodeGenerator', () => {
 
   it('should generate code from a template', async () => {
     // Register a test template
+    // Define template data interface
+    interface TemplateData {
+      componentName: string;
+      className: string;
+      title: string;
+      description: string;
+    }
+
     generator.registerTemplate({
       name: 'testComponent',
-      getTemplate: (data) => `
+      getTemplate: (data: TemplateData) => `
         import React from 'react';
 
         export function ${data.componentName}(props) {
@@ -43,17 +51,12 @@ describe('PolymorphicCodeGenerator', () => {
     
     const code = await generator.generateCode('testComponent', testData);
     
-    // Type assertion for Jest's expect
-    const expectString = (value: string) => ({
-      toContain: (substring: string) => expect(value.includes(substring)).toBe(true),
-      toBe: (expected: string) => expect(value === expected).toBe(true)
-    });
     
-    expectString(code).toContain('import React');
-    expectString(code).toContain('export function TestComponent');
-    expectString(code).toContain('<div className="test-component">');
-    expectString(code).toContain('<h2>Test Title</h2>');
-    expectString(code).toContain('<p>Test Description</p>');
+    expect(code).toContain('import React');
+    expect(code).toContain('export function TestComponent');
+    expect(code).toContain('<div className="test-component">');
+    expect(code).toContain('<h2>Test Title</h2>');
+    expect(code).toContain('<p>Test Description</p>');
   });
 
   it('should generate TypeScript type definitions from state objects', () => {
@@ -69,13 +72,12 @@ describe('PolymorphicCodeGenerator', () => {
     
     const typeDefs = generator.generateTypesFromState(testState, 'TestState');
     
-    // Using our custom typed expect wrapper
-    expectString(typeDefs).toContain('export interface TestState');
-    expectString(typeDefs).toContain('counter: number;');
-    expectString(typeDefs).toContain('text: string;');
-    expectString(typeDefs).toContain('export interface TestStateNested');
-    expectString(typeDefs).toContain('value: boolean;');
-    expectString(typeDefs).toContain('items: string[];');
-    expectString(typeDefs).toContain('nullValue: null | undefined;');
+    expect(typeDefs).toContain('export interface TestState');
+    expect(typeDefs).toContain('counter: number;');
+    expect(typeDefs).toContain('text: string;');
+    expect(typeDefs).toContain('export interface TestStateNested');
+    expect(typeDefs).toContain('value: boolean;');
+    expect(typeDefs).toContain('items: string[];');
+    expect(typeDefs).toContain('nullValue: null | undefined;');
   });
 });
