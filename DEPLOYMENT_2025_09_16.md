@@ -22,6 +22,52 @@ npm install --legacy-peer-deps
 npm run dev
 ```
 
+## Base Path Configuration
+
+**Important**: The application is built with a base path of `/cognis-workforce-tool/`. When serving the application locally or deploying to production, ensure the application is served from this base path.
+
+### Asset URL Structure
+
+All application assets must be served with the correct base path prefix:
+
+```
+/cognis-workforce-tool/            <- Base application URL
+├── assets/                      <- Static assets directory
+│   ├── index-XXXXXXXX.js        <- JavaScript bundles (hashed filenames)
+│   ├── index-XXXXXXXX.css       <- CSS stylesheets (hashed filenames)
+│   ├── runtime-XXXXXXXX.js      <- Runtime chunks
+│   ├── models-XXXXXXXX.js       <- Model-related code
+│   └── ort-wasm-*.wasm          <- WebAssembly binaries
+├── models/                      <- ML model files directory
+│   └── transformers/            <- Transformer models
+└── vite.svg                     <- Favicon and other static assets
+```
+
+If you deploy to a different path, you will need to rebuild the application with the correct base path in `vite.config.ts`.
+
+### Using the Custom Server Script
+
+For local testing with the correct base path:
+
+```bash
+# Install Express (if not already installed)
+npm install express
+
+# Run the custom server script
+node serve-local.js
+
+# Access the application at
+# http://localhost:8090/cognis-workforce-tool
+```
+
+### Troubleshooting Path Issues
+
+If you encounter 404 errors for assets:
+
+1. Check that all assets are being served from `/cognis-workforce-tool/assets/`
+2. Verify that the application is being accessed via the `/cognis-workforce-tool` path
+3. Ensure the server is properly configured to handle client-side routing
+
 ## Deployment Options
 
 ### GitHub Actions (Recommended)

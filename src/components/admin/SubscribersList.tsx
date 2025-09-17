@@ -64,7 +64,7 @@ export default function SubscribersList({ refreshData }: SubscribersListProps) {
       let query = database.from('user_profiles');
       
       // Fetch with basic parameters
-      const { data, error } = await query.select(`
+      const result = await query.select(`
         id, 
         user_id, 
         display_name, 
@@ -73,7 +73,9 @@ export default function SubscribersList({ refreshData }: SubscribersListProps) {
         subscription_started:created_at,
         subscription_ends_at,
         subscription_settings:subscription_settings(auto_renew, payment_method)
-      `);
+      `).limit(100);
+      
+      const { data, error } = result;
       
       // Filter results in memory for demo purposes
       // In production, you would use proper database filtering
